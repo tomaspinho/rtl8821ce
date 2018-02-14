@@ -1,0 +1,138 @@
+#ifndef __HALMAC__HW_CFG_H__
+#define __HALMAC__HW_CFG_H__
+
+#include <drv_conf.h>	/* CONFIG_[IC] */
+
+#ifndef BIT
+	#define BIT(x)		(1 << (x))
+#endif
+
+#ifdef CONFIG_RTL8723A
+#define HALMAC_8723A_SUPPORT	1
+#else
+#define HALMAC_8723A_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8188E
+#define HALMAC_8188E_SUPPORT	1
+#else
+#define HALMAC_8188E_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8821A
+#define HALMAC_8821A_SUPPORT	1
+#else
+#define HALMAC_8821A_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8723B
+#define HALMAC_8723B_SUPPORT	1
+#else
+#define HALMAC_8723B_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8812A
+#define HALMAC_8812A_SUPPORT	1
+#else
+#define HALMAC_8812A_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8192E
+#define HALMAC_8192E_SUPPORT	1
+#else
+#define HALMAC_8192E_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8881A
+#define HALMAC_8881A_SUPPORT	1
+#else
+#define HALMAC_8881A_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8821B
+#define HALMAC_8821B_SUPPORT	1
+#else
+#define HALMAC_8821B_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8814A
+#define HALMAC_8814A_SUPPORT	1
+#else
+#define HALMAC_8814A_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8814B
+#define HALMAC_8814B_SUPPORT	1
+#else
+#define HALMAC_8814B_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8881A
+#define HALMAC_8881A_SUPPORT	1
+#else
+#define HALMAC_8881A_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8703B
+#define HALMAC_8703B_SUPPORT	1
+#else
+#define HALMAC_8703B_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8723D
+#define HALMAC_8723D_SUPPORT	1
+#else
+#define HALMAC_8723D_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8188F
+#define HALMAC_8188F_SUPPORT	1
+#else
+#define HALMAC_8188F_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8821BMP
+#define HALMAC_8821BMP_SUPPORT	1
+#else
+#define HALMAC_8821BMP_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8814AMP
+#define HALMAC_8814AMP_SUPPORT	1
+#else
+#define HALMAC_8814AMP_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8195A
+#define HALMAC_8195A_SUPPORT	1
+#else
+#define HALMAC_8195A_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8196F
+#define HALMAC_8196F_SUPPORT	1
+#else
+#define HALMAC_8196F_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8197F
+#define HALMAC_8197F_SUPPORT	1
+#else
+#define HALMAC_8197F_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8821C
+#define HALMAC_8821C_SUPPORT	1
+#else
+#define HALMAC_8821C_SUPPORT	0
+#endif
+
+#ifdef CONFIG_RTL8822B
+#define HALMAC_8822B_SUPPORT	1
+#else
+#define HALMAC_8822B_SUPPORT	0
+#endif
+
+#endif /* __HALMAC__HW_CFG_H__ */
+
+

@@ -19,3 +19,22 @@ In order to remove the driver from your system open a terminal in the directory 
 sudo ./dkms-remove.sh
 ```
 
+## Possible issues
+Your distribution may come with PCIe Active State Power Management enabled by default. That may conflict with this driver. To disable:
+
+```
+sudo $EDITOR /etc/default/grub
+```
+Add pci=noaer at the end of GRUB_CMDLINE_LINUX_DEFAULT. Line should look like this:
+
+```
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash pci=noaer"
+```
+
+Then update your GRUB configuration:
+```
+sudo update-grub
+```
+
+Reboot.
+

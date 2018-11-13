@@ -20,6 +20,8 @@ sudo ./dkms-remove.sh
 ```
 
 ## Possible issues
+
+### PCIe Activate State Power Management
 Your distribution may come with PCIe Active State Power Management enabled by default. That may conflict with this driver. To disable:
 
 ```
@@ -38,3 +40,10 @@ sudo update-grub
 
 Reboot.
 
+### Lenovo Yoga laptops
+
+Some new Yoga laptops (like the Yoga 530) come with `rtl8821ce` as the Wi-Fi/Bluetooth chip. But the `ideapad-laptop` module, which may come included in your distribution, may conflict with this driver. To disable:
+
+```
+sudo modprobe -r ideapad_laptop
+```

@@ -47,3 +47,7 @@ Some new Yoga laptops (like the Yoga 530) come with `rtl8821ce` as the Wi-Fi/Blu
 ```
 sudo modprobe -r ideapad_laptop
 ```
+
+### BlueTooth is not working
+
+This may be due to the Kernel loading up the wrong firmware file for this card. Please take a look at [@wahsot](https://github.com/wahsot)'s tutorial at https://github.com/tomaspinho/rtl8821ce/issues/19#issuecomment-452196840 to see if that helps you out.

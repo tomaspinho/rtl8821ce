@@ -9,7 +9,7 @@ fi
 
 DRV_DIR=rtl8821ce
 DRV_NAME=rtl8821ce
-DRV_VERSION=v5.2.5_1.26055.20180108 # could not find version history, assuming 1.0
+DRV_VERSION=v5.2.5_1.26055.20180108.1 # could not find version history, assuming 1.0
 
 cp -r ../${DRV_DIR} /usr/src/${DRV_NAME}-${DRV_VERSION}
 

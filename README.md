@@ -13,17 +13,20 @@ This driver can be installed using [DKMS](http://linux.dell.com/dkms/). This is 
 ## Installation of Driver
 Make sure you have a proper build environment and `dkms` installed.
 
-### Ubuntu
+### Ubuntu & Debian
 ```
-sudo apt install linux-headers-$(uname -r) build-essential dkms
-```
-
-### ArchLinux
-Generally speaking, ArchLinux already comes with a compiler toolchain installed. If you have a weird installation, just make sure you have the `base-devel` package group installed before you proceed.
-```
-sudo pacman -Sy linux-headers dkms
+sudo apt install module-assistant build-essential dkms
+sudo m-a prepare
 ```
 
+### Arch Linux
+Generally speaking, Arch Linux already comes with a compiler toolchain installed. If you have a weird installation, just make sure you have the `base-devel` package group installed before you proceed.
+```
+sudo pacman -Syu linux-headers dkms
+```
+If you are running a non-vanilla kernel then install the headers to match the kernel package.
+
+### Installation script
 In order to install the driver open a terminal in the directory with the source code and execute the following command:
 ```
 sudo ./dkms-install.sh

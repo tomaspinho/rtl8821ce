@@ -22,7 +22,7 @@ sudo m-a prepare
 ### Arch Linux
 Generally speaking, Arch Linux already comes with a compiler toolchain installed. If you have a weird installation, just make sure you have the `base-devel` package group installed before you proceed.
 
-#### Installing from AUR
+#### Installing from AUR
 ```
 yaourt -Sy aur/rtl8821ce-dkms-git
 ```

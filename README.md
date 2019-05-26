@@ -21,10 +21,18 @@ sudo m-a prepare
 
 ### Arch Linux
 Generally speaking, Arch Linux already comes with a compiler toolchain installed. If you have a weird installation, just make sure you have the `base-devel` package group installed before you proceed.
+
+#### Installing from AUR
+```
+yaourt -Sy aur/rtl8821ce-dkms-git
+```
+And that's it.
+
+#### Manual installation
 ```
 sudo pacman -Syu linux-headers dkms
 ```
-If you are running a non-vanilla kernel then install the headers to match the kernel package.
+If you are running a non-vanilla kernel then install the headers to match the kernel package. Proceed to the section below.
 
 ### Installation script
 In order to install the driver open a terminal in the directory with the source code and execute the following command:

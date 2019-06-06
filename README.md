@@ -34,6 +34,13 @@ sudo pacman -Syu linux-headers dkms
 ```
 If you are running a non-vanilla kernel then install the headers to match the kernel package. Proceed to the section below.
 
+#### Clone repo to your local disk.
+```
+git clone https://github.com/tomaspinho/rtl8821ce.git
+cd rtl8821ce
+```
+Open a terminal window and git clone this repository and cd into it
+
 ### Installation script
 In order to install the driver open a terminal in the directory with the source code and execute the following command:
 ```

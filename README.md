@@ -24,7 +24,9 @@ Generally speaking, Arch Linux already comes with a compiler toolchain installed
 
 #### Installing from AUR
 ```
-yaourt -Sy aur/rtl8821ce-dkms-git
+git clone https://aur.archlinux.org/rtl8821ce-dkms-git.git
+cd rtl8821ce-dkms-git
+makepkg -si
 ```
 And that's it.
 

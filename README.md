@@ -15,7 +15,7 @@ Make sure you have a proper build environment and `dkms` installed.
 
 ### Ubuntu & Debian
 ```
-sudo apt install module-assistant build-essential dkms
+sudo apt install bc module-assistant build-essential dkms
 sudo m-a prepare
 ```
 

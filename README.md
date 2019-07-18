@@ -28,20 +28,27 @@ yaourt -Sy aur/rtl8821ce-dkms-git
 ```
 And that's it.
 
-#### Manual installation
+#### Depencies for manual installation on Arch Linux
 ```
 sudo pacman -Syu linux-headers dkms
 ```
 If you are running a non-vanilla kernel then install the headers to match the kernel package. Proceed to the section below.
 
-### Installation script
+### Manual installation of driver
 In order to install the driver open a terminal in the directory with the source code and execute the following command:
 ```
 sudo ./dkms-install.sh
 ```
 
 ## Removal of Driver
-In order to remove the driver from your system open a terminal in the directory with the source code and execute the following command:
+Open a terminal window and git clone the repository to your local disk
+
+```
+git clone https://github.com/tomaspinho/rtl8821ce.git
+cd rtl8821ce
+```
+
+Then run the installation script:
 ```
 sudo ./dkms-remove.sh
 ```

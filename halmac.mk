@@ -4,7 +4,7 @@
 # (CONFIG_RTL*) setting are all ready!
 
 # Base directory
-path_hm := hal/halmac
+path_hm := $(topDIR)/hal/halmac
 # Level 1 directory
 path_hm_d1 := $(path_hm)/halmac_88xx
 

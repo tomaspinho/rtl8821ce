@@ -1,4 +1,7 @@
 /linux
+*.o
+*.cmd
+*.o.d
 
 src/
 pkg/

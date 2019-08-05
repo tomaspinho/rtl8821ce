@@ -1,8 +1,31 @@
+/******************************************************************************
+ *
+ * Copyright(c) 2016 - 2017 Realtek Corporation.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of version 2 of the GNU General Public License as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ *****************************************************************************/
 #ifndef __HALBTC_WIFIONLY_H__
 #define __HALBTC_WIFIONLY_H__
 
 #include <drv_types.h>
 #include <hal_data.h>
+
+/* Define the ICs that support wifi only cfg in coex. codes */
+#if defined(CONFIG_RTL8723B) || defined(CONFIG_RTL8822B) || defined(CONFIG_RTL8821C)
+#define CONFIG_BTCOEX_SUPPORT_WIFI_ONLY_CFG 1
+#else
+#define CONFIG_BTCOEX_SUPPORT_WIFI_ONLY_CFG 0
+#endif
+
+#if (CONFIG_BTCOEX_SUPPORT_WIFI_ONLY_CFG == 1)
 
 typedef enum _WIFIONLY_CHIP_INTERFACE {
 	WIFIONLY_INTF_UNKNOWN	= 0,
@@ -38,10 +61,21 @@ u8 halwifionly_read1byte(PVOID pwifionlyContext, u32 RegAddr);
 u16 halwifionly_read2byte(PVOID pwifionlyContext, u32 RegAddr);
 u32 halwifionly_read4byte(PVOID pwifionlyContext, u32 RegAddr);
 void halwifionly_bitmaskwrite1byte(PVOID pwifionlyContext, u32 regAddr, u8 bitMask, u8 data);
-void halwifionly_phy_set_rf_reg(PVOID pwifionlyContext, u8 eRFPath, u32 RegAddr, u32 BitMask, u32 Data);
+void halwifionly_phy_set_rf_reg(PVOID pwifionlyContext, enum rf_path eRFPath, u32 RegAddr, u32 BitMask, u32 Data);
 void halwifionly_phy_set_bb_reg(PVOID pwifionlyContext, u32 RegAddr, u32 BitMask, u32 Data);
 void hal_btcoex_wifionly_switchband_notify(PADAPTER padapter);
 void hal_btcoex_wifionly_scan_notify(PADAPTER padapter);
+void hal_btcoex_wifionly_connect_notify(PADAPTER padapter);
 void hal_btcoex_wifionly_hw_config(PADAPTER padapter);
 void hal_btcoex_wifionly_initlizevariables(PADAPTER padapter);
+void hal_btcoex_wifionly_AntInfoSetting(PADAPTER padapter);
+#else
+#define hal_btcoex_wifionly_switchband_notify(padapter)
+#define hal_btcoex_wifionly_scan_notify(padapter)
+#define hal_btcoex_wifionly_connect_notify(padapter)
+#define hal_btcoex_wifionly_hw_config(padapter)
+#define hal_btcoex_wifionly_initlizevariables(padapter)
+#define hal_btcoex_wifionly_AntInfoSetting(padapter)
+#endif
+
 #endif

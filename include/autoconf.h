@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2015 - 2016 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2015 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,12 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 /***** temporarily flag *******/
 #define CONFIG_SINGLE_IMG
 /* #define CONFIG_DISABLE_ODM */
@@ -29,15 +24,22 @@
 #define DRV_NAME "rtl8821ce"
 
 #define CONFIG_PCI_HCI
-#define CONFIG_PCIE_HCI
 #define PLATFORM_LINUX
 
 /*
  * Wi-Fi Functions Config
  */
-#define CONFIG_80211N_HT
+
 #define CONFIG_RECV_REORDERING_CTRL
+
+#define CONFIG_80211N_HT
 #define CONFIG_80211AC_VHT
+#ifdef CONFIG_80211AC_VHT
+	#ifndef CONFIG_80211N_HT
+		#define CONFIG_80211N_HT
+	#endif
+#endif
+
 #define CONFIG_IEEE80211_BAND_5GHZ
 
 /*#define CONFIG_IOCTL_CFG80211*/
@@ -56,6 +58,7 @@
 /*#define CONFIG_H2CLBK*/
 #define CONFIG_TRX_BD_ARCH	/* PCI only */
 #define USING_RX_TAG
+/*#define CONFIG_64BIT_DMA*/	/* Enable PCI 64bit DMA */
 
 #define CONFIG_EMBEDDED_FWIMG
 
@@ -69,46 +72,38 @@
 	#define CONFIG_ACTIVE_KEEP_ALIVE_CHECK
 #endif
 
-/*#define CONFIG_TCP_CSUM_OFFLOAD_RX*/
-
-/*#define CONFIG_DRVEXT_MODULE*/
-
-
 /*#define CONFIG_DISABLE_MCS13TO15	1*/	/* Disable MSC13-15 rates for more stable TX throughput with some 5G APs */
 
 #define BUF_DESC_ARCH		/* if defined, hardware follows Rx buffer descriptor architecture */
 
-#define CONFIG_IPS
+#ifdef CONFIG_POWER_SAVING
+	#define CONFIG_IPS
 	#ifdef CONFIG_IPS
-	/*#define CONFIG_IPS_LEVEL_2*/	 /* enable this to set default IPS mode to IPS_LEVEL_2 */
-#endif
-/*#define SUPPORT_HW_RFOFF_DETECTED*/
+		/*#define CONFIG_IPS_LEVEL_2*/	 /* enable this to set default IPS mode to IPS_LEVEL_2 */
+	#endif
+	/*#define SUPPORT_HW_RFOFF_DETECTED*/
 
-#define CONFIG_HIGH_CHAN_SUPER_CALIBRATION
-/*#define CONFIG_LPS*/
+	#define CONFIG_LPS
+	#if defined(CONFIG_LPS)
+		/*#define CONFIG_LPS_LCLK*/	 /* 32K */
+	#endif
 
-#if defined(CONFIG_LPS)
-	/*#define CONFIG_LPS_LCLK*/	 /* 32K */
-#endif
+	#ifdef CONFIG_LPS_LCLK
+		#define CONFIG_XMIT_THREAD_MODE
+		#define LPS_RPWM_WAIT_MS 300
+	#endif
 
-
-#ifdef CONFIG_LPS_LCLK
-	#define CONFIG_XMIT_THREAD_MODE
+	#ifdef CONFIG_LPS
+		#define CONFIG_WMMPS_STA 1
+	#endif /* CONFIG_LPS */
 #endif
 
 /*#define CONFIG_PCI_ASPM*/
 
-/*#define CONFIG_ANTENNA_DIVERSITY*/
+/*#define SUPPORT_HW_RFOFF_DETECTED*/
+#define CONFIG_HIGH_CHAN_SUPER_CALIBRATION
 
-/*#define CONFIG_CONCURRENT_MODE*/
-#ifdef CONFIG_CONCURRENT_MODE
-	/*#define CONFIG_HWPORT_SWAP*/				/* Port0->Sec, Port1->Pri */
-	/*#define CONFIG_RUNTIME_PORT_SWITCH*/
-	/*#define DBG_RUNTIME_PORT_SWITCH*/
-	#define CONFIG_SCAN_BACKOP
-	/*#define CONFIG_ATMEL_RC_PATCH*/
-	/*#define CONFIG_TSF_RESET_OFFLOAD*/			/* For 2 PORT TSF SYNC. */
-#endif
+/*#define CONFIG_ANTENNA_DIVERSITY*/
 
 #define CONFIG_AP_MODE
 #ifdef CONFIG_AP_MODE
@@ -142,7 +137,7 @@
 	/*#define CONFIG_P2P_IPS*/
 	#define CONFIG_P2P_OP_CHK_SOCIAL_CH
 	#define CONFIG_CFG80211_ONECHANNEL_UNDER_CONCURRENT  /* replace CONFIG_P2P_CHK_INVITE_CH_LIST flag */
-	#define CONFIG_P2P_INVITE_IOT
+	/*#define CONFIG_P2P_INVITE_IOT*/
 #endif
 
 /* Added by Kurt 20110511 */
@@ -160,15 +155,17 @@
 
 #define CONFIG_SKB_COPY	/* for amsdu */
 
-/*#define CONFIG_LED*/
-#ifdef CONFIG_LED
-	/*#define CONFIG_SW_LED*/
-	#ifdef CONFIG_SW_LED
-		/*#define CONFIG_LED_HANDLED_BY_CMD_THREAD*/
+/*#define CONFIG_RTW_LED*/
+#ifdef CONFIG_RTW_LED
+	/*#define CONFIG_RTW_SW_LED*/
+	#ifdef CONFIG_RTW_SW_LED
+		/*#define CONFIG_RTW_LED_HANDLED_BY_CMD_THREAD*/
 	#endif
-#endif /* CONFIG_LED */
+#endif /* CONFIG_RTW_LED */
 
 #define CONFIG_GLOBAL_UI_PID
+
+/*#define CONFIG_RTW_80211K*/
 
 #define CONFIG_LAYER2_ROAMING
 #define CONFIG_LAYER2_ROAMING_RESUME
@@ -219,10 +216,7 @@
 #define DISABLE_BB_RF	0
 #ifdef CONFIG_WOWLAN
 	#define CONFIG_GTK_OL
-	#define CONFIG_ARP_KEEP_ALIVE
-	#ifndef CONFIG_DEFAULT_PATTERNS_EN
-	#define CONFIG_DEFAULT_PATTERNS_EN
-	#endif
+	/* #define CONFIG_ARP_KEEP_ALIVE */
 #endif /* CONFIG_WOWLAN */
 
 #ifdef CONFIG_GPIO_WAKEUP
@@ -263,13 +257,6 @@
 #ifdef CONFIG_TX_EARLY_MODE
 #define	RTL8192E_EARLY_MODE_PKT_NUM_10	0
 #endif
-
-/* Try to handle the Beacon error found in some types of TP-LINK APs */
-#define CONFIG_ATTEMPT_TO_FIX_AP_BEACON_ERROR
-
-#define CONFIG_80211D
-
-/* #define CONFIG_LAMODE */
 
 /*
  * Debug Related Config
@@ -314,3 +301,5 @@
 /* RX use 1 urb */
 #define CONFIG_SINGLE_RECV_BUF
 #endif
+
+#define	DBG_TXBD_DESC_DUMP

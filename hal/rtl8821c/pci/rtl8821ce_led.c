@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2015 - 2016 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2016 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,17 +11,13 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 
 #include <drv_types.h>		/* PADAPTER */
 #include <hal_data.h>		/* PHAL_DATA_TYPE */
 #include <hal_com_led.h>	/* PLED_PCIE */
 
+#ifdef CONFIG_RTW_SW_LED
 
 /*
  *==============================================================================
@@ -44,7 +40,7 @@ static void SwLedOn_8821ce(PADAPTER adapter, PLED_PCIE pLed)
 #if 0
 	u16 LedReg = REG_LEDCFG0;
 	u8 LedCfg = 0;
-	struct led_priv	*ledpriv = &(adapter->ledpriv);
+	struct led_priv	*ledpriv = adapter_to_led(adapter);
 
 	if (RTW_CANNOT_RUN(adapter))
 		return;
@@ -90,7 +86,7 @@ static void SwLedOff_8821ce(PADAPTER adapter, PLED_PCIE pLed)
 #if 0
 	u16 LedReg = REG_LEDCFG0;
 	PHAL_DATA_TYPE hal = GET_HAL_DATA(adapter);
-	struct led_priv	*ledpriv = &adapter->ledpriv;
+	struct led_priv	*ledpriv = adapter_to_led(adapter);
 
 	if (RTW_CANNOT_RUN(adapter))
 		return;
@@ -139,7 +135,7 @@ static void SwLedOff_8821ce(PADAPTER adapter, PLED_PCIE pLed)
  */
 void rtl8821ce_InitSwLeds(PADAPTER adapter)
 {
-	struct led_priv *pledpriv = &adapter->ledpriv;
+	struct led_priv *pledpriv = adapter_to_led(adapter);
 
 	pledpriv->LedControlHandler = LedControlPCIE;
 
@@ -157,8 +153,9 @@ void rtl8821ce_InitSwLeds(PADAPTER adapter)
  */
 void rtl8821ce_DeInitSwLeds(PADAPTER adapter)
 {
-	struct led_priv	*ledpriv = &adapter->ledpriv;
+	struct led_priv	*ledpriv = adapter_to_led(adapter);
 
 	DeInitLed(&ledpriv->SwLed0);
 	DeInitLed(&ledpriv->SwLed1);
 }
+#endif

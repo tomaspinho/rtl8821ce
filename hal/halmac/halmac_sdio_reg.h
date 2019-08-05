@@ -1,3 +1,18 @@
+/******************************************************************************
+ *
+ * Copyright(c) 2016 - 2018 Realtek Corporation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of version 2 of the GNU General Public License as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ ******************************************************************************/
+
 #ifndef __HALMAC_SDIO_REG_H__
 #define __HALMAC_SDIO_REG_H__
 
@@ -5,11 +20,11 @@
 
 #define HALMAC_SDIO_4BYTE_LEN_MASK      0x1FFF
 #define HALMAC_SDIO_LOCAL_MSK           0x0FFF
-#define HALMAC_WLAN_MAC_REG_MSK			0xFFFF
-#define	HALMAC_WLAN_IOREG_MSK			0xFFFF
+#define HALMAC_WLAN_MAC_REG_MSK		0xFFFF
+#define	HALMAC_WLAN_IOREG_MSK		0xFFFF
 
 /* Sdio Address for SDIO Local Reg, TRX FIFO, MAC Reg */
-typedef enum {
+enum halmac_sdio_cmd_addr {
 	HALMAC_SDIO_CMD_ADDR_SDIO_REG = 0,
 	HALMAC_SDIO_CMD_ADDR_MAC_REG = 8,
 	HALMAC_SDIO_CMD_ADDR_TXFF_HIGH = 4,
@@ -17,7 +32,7 @@ typedef enum {
 	HALMAC_SDIO_CMD_ADDR_TXFF_NORMAL = 5,
 	HALMAC_SDIO_CMD_ADDR_TXFF_EXTRA = 7,
 	HALMAC_SDIO_CMD_ADDR_RXFF = 7,
-} HALMAC_SDIO_CMD_ADDR;
+};
 
 /* IO Bus domain address mapping */
 #define SDIO_LOCAL_OFFSET		0x10250000
@@ -31,8 +46,10 @@ typedef enum {
 
 /* Get TX WLAN FIFO information in CMD53 addr  */
 #if (HALMAC_8822B_SUPPORT || HALMAC_8821C_SUPPORT)
-#define GET_WLAN_TXFF_DEVICE_ID(__pCmd53_addr)		LE_BITS_TO_4BYTE((u32 *)__pCmd53_addr, 13, 4)
-#define GET_WLAN_TXFF_PKT_SIZE(__pCmd53_addr)		LE_BITS_TO_4BYTE((u32 *)__pCmd53_addr, 0, 13) << 2
+#define GET_WLAN_TXFF_DEVICE_ID(cmd53_addr) \
+			LE_BITS_TO_4BYTE((u32 *)cmd53_addr, 13, 4)
+#define GET_WLAN_TXFF_PKT_SIZE(cmd53_addr) \
+			(LE_BITS_TO_4BYTE((u32 *)cmd53_addr, 0, 13) << 2)
 #endif
 
 #endif/* __HALMAC_SDIO_REG_H__ */

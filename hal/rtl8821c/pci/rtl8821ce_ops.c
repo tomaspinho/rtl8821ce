@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2015 - 2016 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2016 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,12 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 
 #define _HCI_OPS_OS_C_
 
@@ -59,6 +54,7 @@ static void rtl8821ce_reset_bd(_adapter *padapter)
 	struct xmit_buf	*pxmitbuf = NULL;
 	u8 *tx_bd, *rx_bd;
 	int i, rx_queue_idx;
+	dma_addr_t mapping;
 
 	for (rx_queue_idx = 0; rx_queue_idx < 1; rx_queue_idx++) {
 		if (r_priv->rx_ring[rx_queue_idx].buf_desc) {
@@ -86,8 +82,12 @@ static void rtl8821ce_reset_bd(_adapter *padapter)
 
 				pxmitbuf = rtl8821ce_dequeue_xmitbuf(ring);
 				if (pxmitbuf) {
+					mapping = GET_TX_BD_PHYSICAL_ADDR0_LOW(tx_bd);
+				#ifdef CONFIG_64BIT_DMA
+					mapping |= (dma_addr_t)GET_TX_BD_PHYSICAL_ADDR0_HIGH(tx_bd) << 32;
+				#endif
 					pci_unmap_single(pdvobjpriv->ppcidev,
-						GET_TX_BD_PHYSICAL_ADDR0_LOW(tx_bd),
+						mapping,
 						pxmitbuf->len, PCI_DMA_TODEVICE);
 					rtw_free_xmitbuf(t_priv, pxmitbuf);
 				} else {
@@ -104,7 +104,40 @@ static void rtl8821ce_reset_bd(_adapter *padapter)
 
 static void intf_chip_configure(PADAPTER padapter)
 {
+	HAL_DATA_TYPE *pHalData = GET_HAL_DATA(padapter);
+	struct dvobj_priv *pdvobjpriv = adapter_to_dvobj(padapter);
+	struct pwrctrl_priv *pwrpriv = dvobj_to_pwrctl(pdvobjpriv);
 
+	/* close ASPM for AMD defaultly */
+	pdvobjpriv->const_amdpci_aspm = 0;
+
+	/* ASPM PS mode. */
+	/* 0 - Disable ASPM, 1 - Enable ASPM without Clock Req, */
+	/* 2 - Enable ASPM with Clock Req, 3- Alwyas Enable ASPM with Clock Req, */
+	/* 4-  Always Enable ASPM without Clock Req. */
+	/* set default to rtl8188ee:3 RTL8192E:2 */
+	pdvobjpriv->const_pci_aspm = 0;
+
+	/* Setting for PCI-E device */
+	pdvobjpriv->const_devicepci_aspm_setting = 0x03;
+
+	/* Setting for PCI-E bridge */
+	pdvobjpriv->const_hostpci_aspm_setting = 0x03;
+
+	/* In Hw/Sw Radio Off situation. */
+	/* 0 - Default, 1 - From ASPM setting without low Mac Pwr, */
+	/* 2 - From ASPM setting with low Mac Pwr, 3 - Bus D3 */
+	/* set default to RTL8192CE:0 RTL8192SE:2 */
+	pdvobjpriv->const_hwsw_rfoff_d3 = 0;
+
+	/* This setting works for those device with backdoor ASPM setting such as EPHY setting. */
+	/* 0: Not support ASPM, 1: Support ASPM, 2: According to chipset. */
+	pdvobjpriv->const_support_pciaspm = 1;
+
+	pwrpriv->reg_rfoff = 0;
+	pwrpriv->rfoff_reason = 0;
+
+	pHalData->bL1OffSupport = _FALSE;
 }
 
 /*
@@ -118,10 +151,13 @@ static void intf_chip_configure(PADAPTER padapter)
  */
 static u8 read_adapter_info(PADAPTER padapter)
 {
+	u8 ret = _FAIL;
+
 	/*
 	 * 1. Read Efuse/EEPROM to initialize
 	 */
-	rtl8821c_read_efuse(padapter);
+	if (rtl8821c_read_efuse(padapter) != _SUCCESS)
+		goto exit;
 
 	/*
 	 * 2. Read registers to initialize
@@ -131,7 +167,10 @@ static u8 read_adapter_info(PADAPTER padapter)
 	 * 3. Other Initialization
 	 */
 
-	return _SUCCESS;
+	ret = _SUCCESS;
+
+exit:
+	return ret;
 }
 
 static BOOLEAN rtl8821ce_InterruptRecognized(PADAPTER Adapter)
@@ -408,8 +447,22 @@ static s32 rtl8821ce_interrupt(PADAPTER Adapter)
 		handled[1] |= BIT_TXFOVW;
 	}
 
+	if (pHalData->IntArray[1] & BIT_PRETXERR_HANDLE_ISR) {
+		RTW_ERR("[PRE-TX HANG]\n");
+		handled[1] |= BIT_PRETXERR_HANDLE_ISR;
+	}
+
 	/* <4> Cmd related */
 	rtl8821ce_cmd_handler(Adapter, handled);
+
+#ifdef CONFIG_LPS_LCLK
+	if (pHalData->IntArray[0] & BIT_CPWM) {
+		struct pwrctrl_priv *pwrpriv = adapter_to_pwrctl(Adapter);
+
+		_set_workitem(&(pwrpriv->cpwm_event));
+		handled[0] |= BIT_CPWM;
+	}
+#endif
 
 	if ((pHalData->IntArray[0] & (~handled[0])) || (pHalData->IntArray[1] & (~handled[1])) || (pHalData->IntArray[3] & (~handled[3]))) {
 		/*if (printk_ratelimit()) */
@@ -610,9 +663,10 @@ static u8 sethaldefvar(PADAPTER adapter, HAL_DEF_VARIABLE eVariable, void *pval)
  * If variable not handled here,
  * some variables will be processed in rtl8821c_sethwreg()
  */
-static void sethwreg(PADAPTER adapter, u8 variable, u8 *val)
+static u8 sethwreg(PADAPTER adapter, u8 variable, u8 *val)
 {
 	PHAL_DATA_TYPE hal;
+	u8 ret = _SUCCESS;
 	u8 val8;
 
 
@@ -636,11 +690,28 @@ static void sethwreg(PADAPTER adapter, u8 variable, u8 *val)
 		hal_mdio_write_8821ce(adapter, (u8)pCmd[0], pCmd[1]);
 		break;
 	}
+#ifdef CONFIG_LPS_LCLK
+	case HW_VAR_SET_RPWM:
+	{
+		u8 ps_state = *((u8 *)val);
+		/* rpwm value only use BIT0(clock bit) ,BIT6(Ack bit), and BIT7(Toggle bit) for 88e. */
+		/* BIT0 value - 1: 32k, 0:40MHz. */
+		/* BIT6 value - 1: report cpwm value after success set, 0:do not report. */
+		/* BIT7 value - Toggle bit change. */
+		/* modify by Thomas. 2012/4/2. */
+		ps_state = ps_state & 0xC1;
+		/* RTW_INFO("##### Change RPWM value to = %x for switch clk #####\n",ps_state); */
+		rtw_write8(adapter, REG_PCIE_HRPWM1_V1_8821C, ps_state);
+		break;
+	}
+#endif
+
 	default:
-		rtl8821c_sethwreg(adapter, variable, val);
+		ret = rtl8821c_sethwreg(adapter, variable, val);
 		break;
 	}
 
+	return ret;
 }
 
 /*
@@ -682,6 +753,13 @@ static void gethwreg(PADAPTER adapter, u8 variable, u8 *val)
 			*val = _FALSE;
 		}
 		break;
+
+#ifdef CONFIG_LPS_LCLK
+	case HW_VAR_CPWM:
+		*val = rtw_read8(adapter, REG_PCIE_HCPWM1_V1_8821C);
+		break;
+#endif
+
 	default:
 		rtl8821c_gethwreg(adapter, variable, val);
 		break;
@@ -713,12 +791,9 @@ void rtl8821ce_set_hal_ops(PADAPTER padapter)
 	ops->init_recv_priv = rtl8821ce_init_recv_priv;
 	ops->free_recv_priv = rtl8821ce_free_recv_priv;
 
-#ifdef CONFIG_SW_LED
+#ifdef CONFIG_RTW_SW_LED
 	ops->InitSwLeds = rtl8821ce_InitSwLeds;
 	ops->DeInitSwLeds = rtl8821ce_DeInitSwLeds;
-#else /* case of hw led or no led */
-	ops->InitSwLeds = NULL;
-	ops->DeInitSwLeds = NULL;
 #endif
 
 	ops->init_default_value = rtl8821ce_init_default_value;

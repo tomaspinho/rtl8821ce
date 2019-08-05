@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2011 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2007 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,12 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 
 
 #define _MLME_OSDEP_C_
@@ -72,7 +67,13 @@ void rtw_os_indicate_connect(_adapter *adapter)
 #endif /* CONFIG_IOCTL_CFG80211 */
 
 	rtw_indicate_wx_assoc_event(adapter);
-	netif_carrier_on(adapter->pnetdev);
+
+#ifdef CONFIG_RTW_MESH
+#if CONFIG_RTW_MESH_CTO_MGATE_CARRIER
+	if (!rtw_mesh_cto_mgate_required(adapter))
+#endif
+#endif
+		rtw_netif_carrier_on(adapter->pnetdev);
 
 	if (adapter->pid[2] != 0)
 		rtw_signal_process(adapter->pid[2], SIGALRM);
@@ -101,7 +102,6 @@ void rtw_reset_securitypriv(_adapter *adapter)
 	u32	backupTKIPcountermeasure_time = 0;
 	/* add for CONFIG_IEEE80211W, none 11w also can use */
 	_irqL irqL;
-	struct mlme_ext_priv	*pmlmeext = &adapter->mlmeextpriv;
 
 	_enter_critical_bh(&adapter->security_key_mutex, &irqL);
 
@@ -118,10 +118,6 @@ void rtw_reset_securitypriv(_adapter *adapter)
 		backupPMKIDIndex = adapter->securitypriv.PMKIDIndex;
 		backupTKIPCountermeasure = adapter->securitypriv.btkip_countermeasure;
 		backupTKIPcountermeasure_time = adapter->securitypriv.btkip_countermeasure_time;
-#ifdef CONFIG_IEEE80211W
-		/* reset RX BIP packet number */
-		pmlmeext->mgnt_80211w_IPN_rx = 0;
-#endif /* CONFIG_IEEE80211W */
 		_rtw_memset((unsigned char *)&adapter->securitypriv, 0, sizeof(struct security_priv));
 
 		/* Added by Albert 2009/02/18 */
@@ -161,7 +157,7 @@ void rtw_os_indicate_disconnect(_adapter *adapter,  u16 reason, u8 locally_gener
 	/* RT_PMKID_LIST   backupPMKIDList[NUM_PMKID_CACHE]; */
 
 
-	netif_carrier_off(adapter->pnetdev); /* Do it first for tx broadcast pkt after disconnection issue! */
+	rtw_netif_carrier_off(adapter->pnetdev); /* Do it first for tx broadcast pkt after disconnection issue! */
 
 #ifdef CONFIG_IOCTL_CFG80211
 	rtw_cfg80211_indicate_disconnect(adapter,  reason, locally_generated);
@@ -233,16 +229,16 @@ void rtw_indicate_sta_assoc_event(_adapter *padapter, struct sta_info *psta)
 	if (psta == NULL)
 		return;
 
-	if (psta->aid > NUM_STA)
+	if (psta->cmn.aid > pstapriv->max_aid)
 		return;
 
-	if (pstapriv->sta_aid[psta->aid - 1] != psta)
+	if (pstapriv->sta_aid[psta->cmn.aid - 1] != psta)
 		return;
 
 
 	wrqu.addr.sa_family = ARPHRD_ETHER;
 
-	_rtw_memcpy(wrqu.addr.sa_data, psta->hwaddr, ETH_ALEN);
+	_rtw_memcpy(wrqu.addr.sa_data, psta->cmn.mac_addr, ETH_ALEN);
 
 	RTW_INFO("+rtw_indicate_sta_assoc_event\n");
 
@@ -260,16 +256,16 @@ void rtw_indicate_sta_disassoc_event(_adapter *padapter, struct sta_info *psta)
 	if (psta == NULL)
 		return;
 
-	if (psta->aid > NUM_STA)
+	if (psta->cmn.aid > pstapriv->max_aid)
 		return;
 
-	if (pstapriv->sta_aid[psta->aid - 1] != psta)
+	if (pstapriv->sta_aid[psta->cmn.aid - 1] != psta)
 		return;
 
 
 	wrqu.addr.sa_family = ARPHRD_ETHER;
 
-	_rtw_memcpy(wrqu.addr.sa_data, psta->hwaddr, ETH_ALEN);
+	_rtw_memcpy(wrqu.addr.sa_data, psta->cmn.mac_addr, ETH_ALEN);
 
 	RTW_INFO("+rtw_indicate_sta_disassoc_event\n");
 
@@ -303,7 +299,7 @@ static int mgnt_netdev_open(struct net_device *pnetdev)
 
 	rtw_netif_wake_queue(pnetdev);
 
-	netif_carrier_on(pnetdev);
+	rtw_netif_carrier_on(pnetdev);
 
 	/* rtw_write16(phostapdpriv->padapter, 0x0116, 0x0100); */ /* only excluding beacon */
 
@@ -317,7 +313,7 @@ static int mgnt_netdev_close(struct net_device *pnetdev)
 
 	usb_kill_anchored_urbs(&phostapdpriv->anchored);
 
-	netif_carrier_off(pnetdev);
+	rtw_netif_carrier_off(pnetdev);
 
 	rtw_netif_stop_queue(pnetdev);
 
@@ -387,9 +383,6 @@ int hostapd_mode_init(_adapter *padapter)
 
 	/* pnetdev->wireless_handlers = NULL; */
 
-#ifdef CONFIG_TCP_CSUM_OFFLOAD_TX
-	pnetdev->features |= NETIF_F_IP_CSUM;
-#endif
 
 
 
@@ -410,7 +403,7 @@ int hostapd_mode_init(_adapter *padapter)
 	_rtw_memcpy(pnetdev->dev_addr, mac, ETH_ALEN);
 
 
-	netif_carrier_off(pnetdev);
+	rtw_netif_carrier_off(pnetdev);
 
 
 	/* Tell the network stack we exist */

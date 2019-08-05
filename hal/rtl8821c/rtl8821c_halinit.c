@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2016 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2016 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,12 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 #define _RTL8821C_HALINIT_C_
 
 #include <drv_types.h>		/* PADAPTER, basic_types.h and etc. */
@@ -37,6 +32,8 @@ void init_hal_spec_rtl8821c(PADAPTER adapter)
 
 	hal_spec->rfpath_num_2g = 2;
 	hal_spec->rfpath_num_5g = 1;
+	hal_spec->txgi_max = 63;
+	hal_spec->txgi_pdbm = 2;
 	hal_spec->max_tx_cnt = 1;
 	hal_spec->tx_nss_num = 1;
 	hal_spec->rx_nss_num = 1;
@@ -47,16 +44,21 @@ void init_hal_spec_rtl8821c(PADAPTER adapter)
 	hal_spec->proto_cap = PROTO_CAP_11B | PROTO_CAP_11G | PROTO_CAP_11N | PROTO_CAP_11AC;
 
 	hal_spec->wl_func = 0
-#ifdef CONFIG_P2P
 			    | WL_FUNC_P2P
-#ifdef CONFIG_WFD
 			    | WL_FUNC_MIRACAST
-#endif /* CONFIG_WFD */
-#endif /* CONFIG_P2P */
-#ifdef CONFIG_TDLS
 			    | WL_FUNC_TDLS
-#endif /* CONFIG_TDLS */
 			    ;
+
+	hal_spec->rx_tsf_filter = 1;
+
+	hal_spec->pg_txpwr_saddr = 0x10;
+	hal_spec->pg_txgi_diff_factor = 1;
+
+	rtw_macid_ctl_init_sleep_reg(adapter_to_macidctl(adapter)
+		, REG_MACID_SLEEP_8821C
+		, REG_MACID_SLEEP1_8821C
+		, REG_MACID_SLEEP2_8821C
+		, REG_MACID_SLEEP3_8821C);
 }
 
 u32 rtl8821c_power_on(PADAPTER adapter)
@@ -124,7 +126,7 @@ void rtl8821c_power_off(PADAPTER adapter)
 	bMacPwrCtrlOn = _FALSE;
 	rtw_hal_set_hwreg(adapter, HW_VAR_APFM_ON_MAC, &bMacPwrCtrlOn);
 
-	adapter->bFWReady = _FALSE;
+	GET_HAL_DATA(adapter)->bFWReady = _FALSE;
 
 out:
 	return;
@@ -137,7 +139,7 @@ u8 rtl8821c_hal_init_main(PADAPTER adapter)
 	int err;
 	s32 ret;
 
-	adapter->bFWReady = _FALSE;
+	hal->bFWReady = _FALSE;
 	hal->fw_ractrl = _FALSE;
 
 #ifdef CONFIG_NO_FW
@@ -151,7 +153,7 @@ u8 rtl8821c_hal_init_main(PADAPTER adapter)
 	#endif
 
 	if (!err) {
-		adapter->bFWReady = _TRUE;
+		hal->bFWReady = _TRUE;
 		hal->fw_ractrl = _TRUE;
 	}
 	RTW_INFO("FW Version:%d SubVersion:%d\n", hal->firmware_version, hal->firmware_sub_version);
@@ -198,7 +200,7 @@ void rtl8821c_hal_init_misc(PADAPTER adapter)
 {
 	PHAL_DATA_TYPE hal_data = GET_HAL_DATA(adapter);
 	u8 drv_info_sz = 0;
-
+	u32	rcr_bits;
 	/*
 	 * Sync driver status and hardware setting
 	 */
@@ -209,27 +211,29 @@ void rtl8821c_hal_init_misc(PADAPTER adapter)
 	/* enable to rx ps-poll ,disable Control frame filter*/
 	rtw_write16(adapter, REG_RXFLTMAP1_8821C, 0x0400);
 	/* Accept all data frames */
-	rtw_write16(adapter, REG_RXFLTMAP_8821C, 0xFFFF);
+	rtw_write16(adapter, REG_RXFLTMAP2_8821C, 0xFFFF);
 
 	/* Accept all management frames */
 	rtw_write16(adapter, REG_RXFLTMAP0_8821C, 0xFFFF);
 
 	/*RCR setting - Sync driver status with hardware setting */
-	rtl8821c_rcr_get(adapter, NULL);
+	rtw_hal_get_hwreg(adapter, HW_VAR_RCR, (u8 *)&rcr_bits);
 
-	rtl8821c_rcr_clear(adapter, BIT_AICV_8821C | BIT_ACRC32_8821C | BIT_APP_FCS_8821C | BIT_APWRMGT_8821C);
+	rcr_bits &= ~(BIT_AICV_8821C | BIT_ACRC32_8821C | BIT_APP_FCS_8821C | BIT_APWRMGT_8821C);
 
-	rtw_halmac_get_drv_info_sz(adapter_to_dvobj(adapter), &drv_info_sz);
+	rtw_halmac_get_rx_drv_info_sz(adapter_to_dvobj(adapter), &drv_info_sz);
 	if (drv_info_sz)
-		rtl8821c_rcr_add(adapter, BIT_APP_PHYSTS_8821C);
+		rcr_bits |= BIT_APP_PHYSTS_8821C;
 
 #ifdef CONFIG_RX_PACKET_APPEND_FCS
-	rtl8821c_rcr_add(adapter, BIT_APP_FCS_8821C);
+	rcr_bits |= BIT_APP_FCS_8821C;
 #endif
 
 #ifdef CONFIG_RX_PACKET_APPEND_ICV_ERROR
-	rtl8821c_rcr_add(adapter, BIT_AICV_8821C);
+	rcr_bits |= BIT_AICV_8821C;
 #endif
+
+	rtw_hal_set_hwreg(adapter, HW_VAR_RCR, (u8 *)&rcr_bits);
 
 #ifdef CONFIG_XMIT_ACK
 	rtl8821c_set_mgnt_xmit_ack(adapter);
@@ -248,22 +252,9 @@ void rtl8821c_hal_init_misc(PADAPTER adapter)
 	/*for 1212 module - 5G RX issue*/
 	if (hal_data->rfe_type == 2)
 		rtw_write8(adapter, REG_PAD_CTRL1 + 3, 0x36);
-
-#ifdef CONFIG_CHECK_AC_LIFETIME
-	/* Enable lifetime check for the four ACs */
-	rtw_write8(adapter, REG_LIFETIME_EN_8821C, rtw_read8(adapter, REG_LIFETIME_EN_8821C) | 0x0f);
-#endif /* CONFIG_CHECK_AC_LIFETIME */
-
-#if defined(CONFIG_CONCURRENT_MODE) || defined(CONFIG_TX_MCAST2UNI)
-#ifdef CONFIG_TX_MCAST2UNI
-	rtw_write16(adapter, REG_PKT_LIFE_TIME_8821C, 0x0400);	/* unit: 256us. 256ms */
-	rtw_write16(adapter, REG_PKT_LIFE_TIME_8821C+2, 0x0400);	/* unit: 256us. 256ms */
-#else	/* CONFIG_TX_MCAST2UNI */
-	rtw_write16(adapter, REG_PKT_LIFE_TIME_8821C, 0x3000);	/* unit: 256us. 3s */
-	rtw_write16(adapter, REG_PKT_LIFE_TIME_8821C+2, 0x3000);	/* unit: 256us. 3s */
-#endif /* CONFIG_TX_MCAST2UNI */
-#endif /* CONFIG_CONCURRENT_MODE || CONFIG_TX_MCAST2UNI */
-
+#ifdef CONFIG_AMPDU_PRETX_CD
+	rtl8821c_pretx_cd_config(adapter);
+#endif
 }
 
 u32 rtl8821c_hal_init(PADAPTER adapter)
@@ -278,16 +269,25 @@ u32 rtl8821c_hal_init(PADAPTER adapter)
 	rtl8821c_hal_init_misc(adapter);
 
 	rtl8821c_phy_init_haldm(adapter);
+#ifdef CONFIG_BEAMFORMING
+	rtl8821c_phy_bf_init(adapter);
+#endif
+
+#ifdef CONFIG_FW_MULTI_PORT_SUPPORT
+	/*HW / FW init*/
+	rtw_hal_set_default_port_id_cmd(adapter, 0);
+#endif
 
 #ifdef CONFIG_BT_COEXIST
 	/* Init BT hw config. */
-	if (_TRUE == hal->EEPROMBluetoothCoexist)
+	if (_TRUE == hal->EEPROMBluetoothCoexist) {
 		rtw_btcoex_HAL_Initialize(adapter, _FALSE);
-	else
-		rtw_btcoex_wifionly_hw_config(adapter);
-#else /* CONFIG_BT_COEXIST */
-	rtw_btcoex_wifionly_hw_config(adapter);
+		#ifdef CONFIG_FW_MULTI_PORT_SUPPORT
+		rtw_hal_set_wifi_btc_port_id_cmd(adapter);
+		#endif
+	} else
 #endif /* CONFIG_BT_COEXIST */
+		rtw_btcoex_wifionly_hw_config(adapter);
 
 	rtl8821c_hal_init_channel_setting(adapter);
 
@@ -304,7 +304,7 @@ u32 rtl8821c_hal_deinit(PADAPTER adapter)
 	d = adapter_to_dvobj(adapter);
 	hal = GET_HAL_DATA(adapter);
 
-	adapter->bFWReady = _FALSE;
+	hal->bFWReady = _FALSE;
 	hal->fw_ractrl = _FALSE;
 
 	err = rtw_halmac_deinit_hal(d);
@@ -322,7 +322,6 @@ void rtl8821c_init_default_value(PADAPTER adapter)
 
 	hal = GET_HAL_DATA(adapter);
 
-	adapter->registrypriv.wireless_mode = WIRELESS_MODE_24G | WIRELESS_MODE_5G;
 
 	/* init default value */
 	hal->fw_ractrl = _FALSE;
@@ -332,10 +331,6 @@ void rtl8821c_init_default_value(PADAPTER adapter)
 
 	/* init phydm default value */
 	hal->bIQKInitialized = _FALSE;
-	hal->odmpriv.rf_calibrate_info.tm_trigger = 0; /* for IQK */
-	hal->odmpriv.rf_calibrate_info.thermal_value_hp_index = 0;
-	for (i = 0; i < HP_THERMAL_NUM; i++)
-		hal->odmpriv.rf_calibrate_info.thermal_value_hp[i] = 0;
 
 	/* init Efuse variables */
 	hal->EfuseUsedBytes = 0;

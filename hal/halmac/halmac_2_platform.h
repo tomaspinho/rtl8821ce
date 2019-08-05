@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2015 - 2016 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2015 - 2018 Realtek Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,12 +11,8 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
  ******************************************************************************/
+
 #ifndef _HALMAC_2_PLATFORM_H_
 #define _HALMAC_2_PLATFORM_H_
 
@@ -32,20 +28,18 @@
 #include <osdep_service.h>		/* __BIG_ENDIAN, __LITTLE_ENDIAN, _sema, _mutex */
 #endif
 
-/*[Driver] provide the define of _TRUE, _FALSE, NULL, u8, u16, u32*/
+/*[Driver] provide the define of NULL, u8, u16, u32*/
 #ifndef NULL
 #define NULL		((void *)0)
 #endif
 
 #define HALMAC_INLINE	inline
 
-typedef u8	*pu8;
-typedef u16	*pu16;
-typedef u32	*pu32;
-typedef s8	*ps8;
-typedef s16	*ps16;
-typedef s32	*ps32;
-
+/*
+ * Ignore following typedef because Linux already have these
+ * u8, u16, u32, s8, s16, s32
+ * __le16, __le32, __be16, __be32
+ */
 
 #define HALMAC_PLATFORM_LITTLE_ENDIAN	1
 #define HALMAC_PLATFORM_BIG_ENDIAN	0
@@ -70,9 +64,20 @@ typedef s32	*ps32;
 /*[Driver] config if enable the dbg msg or notl*/
 #define HALMAC_DBG_MSG_ENABLE		1
 
+#define HALMAC_MSG_LEVEL_TRACE		3
+#define HALMAC_MSG_LEVEL_WARNING	2
+#define HALMAC_MSG_LEVEL_ERR		1
+#define HALMAC_MSG_LEVEL_NO_LOG		0
+/*[Driver] config halmac msg level
+ * Use HALMAC_MSG_LEVEL_XXXX
+ */
+#define HALMAC_MSG_LEVEL HALMAC_MSG_LEVEL_TRACE
+
 /*[Driver] define the Rx FIFO expanding mode packet size unit for 8821C and 8822B */
 /*Should be 8 Byte alignment*/
-#define HALMAC_RX_FIFO_EXPANDING_MODE_PKT_SIZE	48 /*Bytes*/
+#define HALMAC_RX_FIFO_EXPANDING_MODE_PKT_SIZE	80 /*Bytes*/
+
+#define HALMAC_USE_TYPEDEF		0
 
 /*[Driver] provide the type mutex*/
 /* Mutex type */

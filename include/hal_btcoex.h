@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2013 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2013 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,12 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 #ifndef __HAL_BTCOEX_H__
 #define __HAL_BTCOEX_H__
 
@@ -42,6 +37,7 @@ void hal_btcoex_SetPgAntNum(PADAPTER padapter, u8 antNum);
 
 u8 hal_btcoex_Initialize(PADAPTER padapter);
 void hal_btcoex_PowerOnSetting(PADAPTER padapter);
+void hal_btcoex_AntInfoSetting(PADAPTER padapter);
 void hal_btcoex_PowerOffSetting(PADAPTER padapter);
 void hal_btcoex_PreLoadFirmware(PADAPTER padapter);
 void hal_btcoex_InitHwConfig(PADAPTER padapter, u8 bWifiOnly);
@@ -91,6 +87,8 @@ u16 hal_btcoex_btreg_read(PADAPTER padapter, u8 type, u16 addr, u32 *data);
 u16 hal_btcoex_btreg_write(PADAPTER padapter, u8 type, u16 addr, u16 val);
 void hal_btcoex_set_rfe_type(u8 type);
 void hal_btcoex_switchband_notify(u8 under_scan, u8 band_type);
+void hal_btcoex_WlFwDbgInfoNotify(PADAPTER padapter, u8* tmpBuf, u8 length);
+void hal_btcoex_rx_rate_change_notify(PADAPTER padapter, u8 is_data_frame, u8 rate_id);
 
 #ifdef CONFIG_RF4CE_COEXIST
 void hal_btcoex_set_rf4ce_link_state(u8 state);

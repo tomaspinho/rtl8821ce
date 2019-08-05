@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2011 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2007 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,12 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 
 #ifndef _RTW_IO_H_
 #define _RTW_IO_H_
@@ -400,10 +395,12 @@ u32 _rtw_write_port_and_wait(_adapter *adapter, u32 addr, u32 cnt, u8 *pmem, int
 extern void _rtw_write_port_cancel(_adapter *adapter);
 
 #ifdef DBG_IO
-bool match_read_sniff_ranges(u32 addr, u16 len);
-bool match_write_sniff_ranges(u32 addr, u16 len);
-bool match_rf_read_sniff_ranges(u8 path, u32 addr, u32 mask);
-bool match_rf_write_sniff_ranges(u8 path, u32 addr, u32 mask);
+struct rtw_io_sniff_ent;
+const char *rtw_io_sniff_ent_get_tag(const struct rtw_io_sniff_ent *ent);
+const struct rtw_io_sniff_ent *match_read_sniff(_adapter *adapter, u32 addr, u16 len, u32 val);
+const struct rtw_io_sniff_ent *match_write_sniff(_adapter *adapter, u32 addr, u16 len, u32 val);
+bool match_rf_read_sniff_ranges(_adapter *adapter, u8 path, u32 addr, u32 mask);
+bool match_rf_write_sniff_ranges(_adapter *adapter, u8 path, u32 addr, u32 mask);
 
 extern u8 dbg_rtw_read8(_adapter *adapter, u32 addr, const char *caller, const int line);
 extern u16 dbg_rtw_read16(_adapter *adapter, u32 addr, const char *caller, const int line);
@@ -460,10 +457,6 @@ int dbg_rtw_sd_iwrite32(_adapter *adapter, u32 addr, u32 val, const char *caller
 #endif /* CONFIG_SDIO_HCI */
 
 #else /* DBG_IO */
-#define match_read_sniff_ranges(addr, len) _FALSE
-#define match_write_sniff_ranges(addr, len) _FALSE
-#define match_rf_read_sniff_ranges(path, addr, mask) _FALSE
-#define match_rf_write_sniff_ranges(path, addr, mask) _FALSE
 #define rtw_read8(adapter, addr) _rtw_read8((adapter), (addr))
 #define rtw_read16(adapter, addr) _rtw_read16((adapter), (addr))
 #define rtw_read32(adapter, addr) _rtw_read32((adapter), (addr))

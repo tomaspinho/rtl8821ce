@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2016 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2016 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,85 +11,12 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 #define _RTL8821C_MAC_C_
 
 #include <drv_types.h>		/* PADAPTER, basic_types.h and etc. */
 #include <hal_data.h>		/* HAL_DATA_TYPE */
 #include "../hal_halmac.h"	/* Register Definition and etc. */
-
-inline u8 rtl8821c_rcr_config(PADAPTER p, u32 rcr)
-{
-	int err;
-
-	err = rtw_write32(p, REG_RCR_8821C, rcr);
-	if (_FAIL == err)
-		return _FALSE;
-
-	GET_HAL_DATA(p)->ReceiveConfig = rcr;
-	return _TRUE;
-}
-
-inline u8 rtl8821c_rcr_get(PADAPTER p, u32 *rcr)
-{
-	u32 v32;
-
-	v32 = rtw_read32(p, REG_RCR_8821C);
-	if (rcr)
-		*rcr = v32;
-	GET_HAL_DATA(p)->ReceiveConfig = v32;
-	return _TRUE;
-}
-
-inline u8 rtl8821c_rcr_check(PADAPTER p, u32 check_bit)
-{
-	PHAL_DATA_TYPE hal;
-	u32 rcr;
-
-	hal = GET_HAL_DATA(p);
-	rcr = hal->ReceiveConfig;
-	if ((rcr & check_bit) == check_bit)
-		return _TRUE;
-
-	return _FALSE;
-}
-
-inline u8 rtl8821c_rcr_add(PADAPTER p, u32 add)
-{
-	PHAL_DATA_TYPE hal;
-	u32 rcr;
-	u8 ret = _TRUE;
-
-	hal = GET_HAL_DATA(p);
-
-	rcr = hal->ReceiveConfig;
-	rcr |= add;
-	if (rcr != hal->ReceiveConfig)
-		ret = rtl8821c_rcr_config(p, rcr);
-
-	return ret;
-}
-
-inline u8 rtl8821c_rcr_clear(PADAPTER p, u32 clear)
-{
-	PHAL_DATA_TYPE hal;
-	u32 rcr;
-	u8 ret = _TRUE;
-
-	hal = GET_HAL_DATA(p);
-
-	rcr = hal->ReceiveConfig;
-	rcr &= ~clear;
-	if (rcr != hal->ReceiveConfig)
-		ret = rtl8821c_rcr_config(p, rcr);
-
-	return ret;
-}
 
 #ifdef CONFIG_XMIT_ACK
 inline u8 rtl8821c_set_mgnt_xmit_ack(_adapter *adapter)
@@ -107,7 +34,7 @@ inline u8 rtl8821c_set_mgnt_xmit_ack(_adapter *adapter)
 
 inline u8 rtl8821c_rx_ba_ssn_appended(PADAPTER p)
 {
-	return rtl8821c_rcr_check(p, BIT_APP_BASSN_8821C);
+	return rtw_hal_rcr_check(p, BIT_APP_BASSN_8821C);
 }
 
 inline u8 rtl8821c_rx_fcs_append_switch(PADAPTER p, u8 enable)
@@ -117,16 +44,16 @@ inline u8 rtl8821c_rx_fcs_append_switch(PADAPTER p, u8 enable)
 
 	rcr_bit = BIT_APP_FCS_8821C;
 	if (_TRUE == enable)
-		ret = rtl8821c_rcr_add(p, rcr_bit);
+		ret = rtw_hal_rcr_add(p, rcr_bit);
 	else
-		ret = rtl8821c_rcr_clear(p, rcr_bit);
+		ret = rtw_hal_rcr_clear(p, rcr_bit);
 
 	return ret;
 }
 
 inline u8 rtl8821c_rx_fcs_appended(PADAPTER p)
 {
-	return rtl8821c_rcr_check(p, BIT_APP_FCS_8821C);
+	return rtw_hal_rcr_check(p, BIT_APP_FCS_8821C);
 }
 
 u8 rtl8821c_rx_tsf_addr_filter_config(_adapter *adapter, u8 config)
@@ -170,14 +97,16 @@ s32 rtl8821c_fw_dl(PADAPTER adapter, u8 wowlan)
 	}
 #else
 	fw_bin = _FALSE;
+	#ifdef CONFIG_WOWLAN
 	if (_TRUE == wowlan)
 		err = rtw_halmac_dlfw(d, array_mp_8821c_fw_wowlan, array_length_mp_8821c_fw_wowlan);
 	else
+	#endif
 		err = rtw_halmac_dlfw(d, array_mp_8821c_fw_nic, array_length_mp_8821c_fw_nic);
 #endif
 
 	if (!err) {
-		adapter->bFWReady = _TRUE;
+		hal_data->bFWReady = _TRUE;
 		hal_data->fw_ractrl = _TRUE;
 		RTW_INFO("%s Download Firmware from %s success\n", __func__, (fw_bin) ? "file" : "array");
 		RTW_INFO("%s FW Version:%d SubVersion:%d\n", (wowlan) ? "WOW" : "NIC", hal_data->firmware_version, hal_data->firmware_sub_version);
@@ -218,4 +147,36 @@ s32 rtl8821c_fw_mem_dl(PADAPTER adapter, enum fw_mem mem)
 	return _SUCCESS;
 
 }
+#ifdef CONFIG_AMPDU_PRETX_CD
+#include "rtl8821c.h"
+#define AMPDU_NUMBER				0x3F3F /*MAX AMPDU Number = 63*/
+#define REG_PRECNT_CTRL_8821C		0x04E5
+#define BIT_EN_PRECNT_8821C			BIT(11)
+#define PRECNT_TH					0x1E4 /*6.05us*/
 
+/* pre-tx count-down mechanism */
+void rtl8821c_pretx_cd_config(_adapter *adapter)
+{
+	u8 burst_mode;
+	u16 pre_cnt = PRECNT_TH | BIT_EN_PRECNT_8821C;
+
+	/*Enable AMPDU PRE-TX, Reg0x4BC[6] = 1*/
+	burst_mode = rtw_read8(adapter, REG_SW_AMPDU_BURST_MODE_CTRL_8821C);
+	if (!(burst_mode & BIT_PRE_TX_CMD_8821C)) {
+		burst_mode |= BIT_PRE_TX_CMD_8821C;
+		rtw_write8(adapter, REG_SW_AMPDU_BURST_MODE_CTRL_8821C, burst_mode);
+	}
+
+	/*MAX AMPDU Number = 63, Reg0x4C8[21:16] = 0x3F*/
+	rtw_write16(adapter, REG_PROT_MODE_CTRL_8821C + 2, AMPDU_NUMBER);
+
+	/*Reg0x4E5[11] = 1, Reg0x4E5[10:0] = 0x1E4 */
+	rtw_write8(adapter, REG_PRECNT_CTRL_8821C, (u8)(pre_cnt & 0xFF));
+	rtw_write8(adapter, (REG_PRECNT_CTRL_8821C + 1), (u8)(pre_cnt >> 8));
+
+	#if (defined(DBG_PRE_TX_HANG) && (defined(CONFIG_USB_HCI) || defined(CONFIG_SDIO_HCI)))
+	rtw_write32(adapter, REG_HIMR1_8821C ,
+		(rtw_read32(adapter, REG_HIMR1_8821C) | BIT_PRETXERR_HANDLE_IMR));
+	#endif
+}
+#endif /*CONFIG_AMPDU_PRETX_CD*/

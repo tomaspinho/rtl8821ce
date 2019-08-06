@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2011 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2007 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,12 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 #ifndef __HAL_COM_PHYCFG_H__
 #define __HAL_COM_PHYCFG_H__
 
@@ -33,20 +28,6 @@ typedef enum _RF_TX_NUM {
 	RF_MAX_TX_NUM,
 	RF_TX_NUM_NONIMPLEMENT,
 } RF_TX_NUM;
-
-#define MAX_POWER_INDEX		0x3F
-
-typedef enum _REGULATION_TXPWR_LMT {
-	TXPWR_LMT_FCC = 0,
-	TXPWR_LMT_MKK = 1,
-	TXPWR_LMT_ETSI = 2,
-	TXPWR_LMT_WW = 3,
-
-	TXPWR_LMT_MAX_REGULATION_NUM = 4
-} REGULATION_TXPWR_LMT;
-
-#define TX_PWR_LMT_REF_VHT_FROM_HT	BIT0
-#define TX_PWR_LMT_REF_HT_FROM_VHT	BIT1
 
 /*------------------------------Define structure----------------------------*/
 typedef struct _BB_REGISTER_DEFINITION {
@@ -79,7 +60,6 @@ PHY_GetTxPowerByRateBase(
 	IN	PADAPTER		Adapter,
 	IN	u8				Band,
 	IN	u8				RfPath,
-	IN	u8				TxNum,
 	IN	RATE_SECTION	RateSection
 );
 
@@ -102,7 +82,7 @@ PHY_GetRateIndexOfTxPowerByRate(
 VOID
 phy_set_tx_power_index_by_rate_section(
 	IN	PADAPTER		pAdapter,
-	IN	u8				RFPath,
+	IN	enum rf_path		RFPath,
 	IN	u8				Channel,
 	IN	u8				RateSection
 );
@@ -111,8 +91,7 @@ s8
 _PHY_GetTxPowerByRate(
 	IN	PADAPTER	pAdapter,
 	IN	u8			Band,
-	IN	u8			RFPath,
-	IN	u8			TxNum,
+	IN	enum rf_path	RFPath,
 	IN	u8			RateIndex
 );
 
@@ -120,28 +99,15 @@ s8
 PHY_GetTxPowerByRate(
 	IN	PADAPTER	pAdapter,
 	IN	u8			Band,
-	IN	u8			RFPath,
-	IN	u8			TxNum,
+	IN	enum rf_path	RFPath,
 	IN	u8			RateIndex
 );
-
-#ifdef CONFIG_PHYDM_POWERTRACK_BY_TSSI
-s8
-PHY_GetTxPowerByRateOriginal(
-	IN	PADAPTER	pAdapter,
-	IN	u8			Band,
-	IN	u8			RFPath,
-	IN	u8			TxNum,
-	IN	u8			Rate
-);
-#endif
 
 VOID
 PHY_SetTxPowerByRate(
 	IN	PADAPTER	pAdapter,
 	IN	u8			Band,
-	IN	u8			RFPath,
-	IN	u8			TxNum,
+	IN	enum rf_path	RFPath,
 	IN	u8			Rate,
 	IN	s8			Value
 );
@@ -156,8 +122,8 @@ phy_set_tx_power_level_by_path(
 VOID
 PHY_SetTxPowerIndexByRateArray(
 	IN	PADAPTER		pAdapter,
-	IN	u8				RFPath,
-	IN	CHANNEL_WIDTH	BandWidth,
+	IN	enum rf_path		RFPath,
+	IN	enum channel_width BandWidth,
 	IN	u8				Channel,
 	IN	u8				*Rates,
 	IN	u8				RateArraySize
@@ -187,66 +153,47 @@ PHY_TxPowerByRateConfiguration(
 u8
 PHY_GetTxPowerIndexBase(
 	IN	PADAPTER		pAdapter,
-	IN	u8				RFPath,
+	IN	enum rf_path		RFPath,
 	IN	u8				Rate,
-	IN	CHANNEL_WIDTH	BandWidth,
+	u8 ntx_idx,
+	IN	enum channel_width	BandWidth,
 	IN	u8				Channel,
 	OUT PBOOLEAN		bIn24G
 );
 
-s8
-PHY_GetTxPowerLimit(
-	IN	PADAPTER		Adapter,
-	IN	u32				RegPwrTblSel,
-	IN	BAND_TYPE		Band,
-	IN	CHANNEL_WIDTH	Bandwidth,
-	IN	u8				RfPath,
-	IN	u8				DataRate,
-	IN	u8				Channel
+#ifdef CONFIG_TXPWR_LIMIT
+s8 phy_get_txpwr_lmt_abs(_adapter *adapter
+	, const char *regd_name
+	, BAND_TYPE band, enum channel_width bw
+	, u8 tlrs, u8 ntx_idx, u8 cch, u8 lock
 );
 
-s8
-PHY_GetTxPowerLimit_no_sc(
-	IN	PADAPTER			Adapter,
-	IN	u32					RegPwrTblSel,
-	IN	BAND_TYPE			Band,
-	IN	CHANNEL_WIDTH		Bandwidth,
-	IN	u8					RfPath,
-	IN	u8					DataRate,
-	IN	u8					Channel
+s8 phy_get_txpwr_lmt(_adapter *adapter
+	, const char *regd_name
+	, BAND_TYPE band, enum channel_width bw
+	, u8 rfpath, u8 rs, u8 ntx_idx, u8 cch, u8 lock
 );
 
-#ifdef CONFIG_PHYDM_POWERTRACK_BY_TSSI
-s8
-PHY_GetTxPowerLimitOriginal(
-	IN	PADAPTER		Adapter,
-	IN	u32				RegPwrTblSel,
-	IN	BAND_TYPE		Band,
-	IN	CHANNEL_WIDTH	Bandwidth,
-	IN	u8				RfPath,
-	IN	u8				DataRate,
-	IN	u8				Channel
+s8 PHY_GetTxPowerLimit(_adapter *adapter
+	, const char *regd_name
+	, BAND_TYPE band, enum channel_width bw
+	, u8 rfpath, u8 rate, u8 ntx_idx, u8 cch
 );
-#endif
-
-VOID
-PHY_ConvertTxPowerLimitToPowerIndex(
-	IN	PADAPTER			Adapter
-);
-
-VOID
-PHY_InitTxPowerLimit(
-	IN	PADAPTER			Adapter
-);
+#else
+#define phy_get_txpwr_lmt_abs(adapter, regd_name, band, bw, tlrs, ntx_idx, cch, lock) (GET_HAL_SPEC(adapter)->txgi_max)
+#define phy_get_txpwr_lmt(adapter, regd_name, band, bw, rfpath, rs, ntx_idx, cch, lock) (GET_HAL_SPEC(adapter)->txgi_max)
+#define PHY_GetTxPowerLimit(adapter, regd_name, band, bw, rfpath, rate, ntx_idx, cch) (GET_HAL_SPEC(adapter)->txgi_max)
+#endif /* CONFIG_TXPWR_LIMIT */
 
 s8
 PHY_GetTxPowerTrackingOffset(
 	PADAPTER	pAdapter,
-	u8			Rate,
-	u8			RFPath
+	enum rf_path	RFPath,
+	u8			Rate
 );
 
 struct txpwr_idx_comp {
+	u8 ntx_idx;
 	u8 base;
 	s8 by_rate;
 	s8 limit;
@@ -257,9 +204,9 @@ struct txpwr_idx_comp {
 u8
 phy_get_tx_power_index(
 	IN	PADAPTER			pAdapter,
-	IN	u8					RFPath,
+	IN	enum rf_path			RFPath,
 	IN	u8					Rate,
-	IN	CHANNEL_WIDTH		BandWidth,
+	IN	enum channel_width	BandWidth,
 	IN	u8					Channel
 );
 
@@ -267,7 +214,7 @@ VOID
 PHY_SetTxPowerIndex(
 	IN	PADAPTER		pAdapter,
 	IN	u32				PowerIndex,
-	IN	u8				RFPath,
+	IN	enum rf_path		RFPath,
 	IN	u8				Rate
 );
 
@@ -278,15 +225,18 @@ void dump_tx_power_idx(void *sel, _adapter *adapter);
 bool phy_is_tx_power_limit_needed(_adapter *adapter);
 bool phy_is_tx_power_by_rate_needed(_adapter *adapter);
 int phy_load_tx_power_by_rate(_adapter *adapter, u8 chk_file);
+#ifdef CONFIG_TXPWR_LIMIT
 int phy_load_tx_power_limit(_adapter *adapter, u8 chk_file);
+#endif
 void phy_load_tx_power_ext_info(_adapter *adapter, u8 chk_file);
 void phy_reload_tx_power_ext_info(_adapter *adapter);
 void phy_reload_default_tx_power_ext_info(_adapter *adapter);
 
 const struct map_t *hal_pg_txpwr_def_info(_adapter *adapter);
 
-void dump_pg_txpwr_info_2g(void *sel, TxPowerInfo24G *txpwr_info, u8 rfpath_num, u8 max_tx_cnt);
-void dump_pg_txpwr_info_5g(void *sel, TxPowerInfo5G *txpwr_info, u8 rfpath_num, u8 max_tx_cnt);
+#ifdef CONFIG_EFUSE_CONFIG_FILE
+int check_phy_efuse_tx_power_info_valid(_adapter *adapter);
+#endif
 
 void dump_hal_txpwr_info_2g(void *sel, _adapter *adapter, u8 rfpath_num, u8 max_tx_cnt);
 void dump_hal_txpwr_info_5g(void *sel, _adapter *adapter, u8 rfpath_num, u8 max_tx_cnt);
@@ -301,7 +251,6 @@ void hal_load_txpwr_info(
 void dump_tx_power_ext_info(void *sel, _adapter *adapter);
 void dump_target_tx_power(void *sel, _adapter *adapter);
 void dump_tx_power_by_rate(void *sel, _adapter *adapter);
-void dump_tx_power_limit(void *sel, _adapter *adapter);
 
 int rtw_get_phy_file_path(_adapter *adapter, const char *file_name);
 
@@ -338,11 +287,13 @@ int phy_ConfigMACWithParaFile(IN PADAPTER	Adapter, IN char	*pFileName);
 int phy_ConfigBBWithParaFile(IN PADAPTER	Adapter, IN char	*pFileName, IN u32	ConfigType);
 int phy_ConfigBBWithPgParaFile(IN PADAPTER	Adapter, IN const char *pFileName);
 int phy_ConfigBBWithMpParaFile(IN PADAPTER	Adapter, IN char	*pFileName);
-int PHY_ConfigRFWithParaFile(IN	PADAPTER	Adapter, IN char	*pFileName, IN u8	eRFPath);
+int PHY_ConfigRFWithParaFile(IN	PADAPTER	Adapter, IN char	*pFileName, IN enum rf_path	eRFPath);
 int PHY_ConfigRFWithTxPwrTrackParaFile(IN PADAPTER	Adapter, IN char	*pFileName);
+#ifdef CONFIG_TXPWR_LIMIT
 int PHY_ConfigRFWithPowerLimitTableParaFile(IN PADAPTER	Adapter, IN const char *pFileName);
+#endif
 void phy_free_filebuf_mask(_adapter *padapter, u8 mask);
 void phy_free_filebuf(_adapter *padapter);
 #endif /* CONFIG_LOAD_PHY_PARA_FROM_FILE */
-
+u8 phy_check_under_survey_ch(_adapter *adapter);
 #endif /* __HAL_COMMON_H__ */

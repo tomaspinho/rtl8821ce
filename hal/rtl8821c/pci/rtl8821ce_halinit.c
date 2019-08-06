@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2015 - 2016 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2016 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,12 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 
 #define _RTL8821CE_HALINIT_C_
 #include <drv_types.h>          /* PADAPTER, basic_types.h and etc. */
@@ -104,7 +99,7 @@ u32 InitMAC_TRXBD_8821CE(PADAPTER Adapter)
 	rtw_write32(Adapter, REG_RXQ_RXBD_DESA_8821C + 4,
 		    ((u64)precvpriv->rx_ring[RX_MPDU_QUEUE].dma) >> 32);
 
-
+#if 0
 	/* 2009/10/28 MH If RX descriptor address is not equal to zero.
 	* We will enable DMA 64 bit functuion.
 	* Note: We never saw thd consition which the descripto address are
@@ -119,9 +114,11 @@ u32 InitMAC_TRXBD_8821CE(PADAPTER Adapter)
 		if (((u64)pxmitpriv->tx_ring[MGT_QUEUE_INX].dma) >> 32)
 			RTW_INFO("MGNT_QUEUE HA=0\n");
 
-		PlatformEnableDMA64(Adapter);
 	} else
 		RTW_INFO("Enable DMA32 bit\n");
+#endif
+	if (adapter_to_dvobj(Adapter)->bdma64)	
+		PlatformEnableDMA64(Adapter);
 #endif
 
 	/* pci buffer descriptor mode: Reset the Read/Write point to 0 */
@@ -183,16 +180,15 @@ u32 InitMAC_TRXBD_8821CE(PADAPTER Adapter)
 
 	/* rx. support 32 bits in linux */
 
-
-	/* using 64bit
-	*  rtw_write16(Adapter, REG_RX_RXBD_NUM_8821C,
-	*  RX_BD_NUM_8821CE |((RTL8821CE_SEG_NUM<<13 ) & 0x6000) |0x8000);
-	*/
-
-
+#ifdef CONFIG_64BIT_DMA
+	/* using 64bit */
+	rtw_write16(Adapter, REG_RX_RXBD_NUM_8821C,
+		    RX_BD_NUM_8821CE |((RTL8821CE_SEG_NUM<<13 ) & 0x6000) |0x8000);
+#else
 	/* using 32bit */
 	rtw_write16(Adapter, REG_RX_RXBD_NUM_8821C,
 		    RX_BD_NUM_8821CE | ((RTL8821CE_SEG_NUM << 13) & 0x6000));
+#endif
 
 	/* reset read/write point */
 	rtw_write32(Adapter, REG_TSFTIMER_HCI_8821C, 0XFFFFFFFF);
@@ -256,6 +252,9 @@ u32 rtl8821ce_hal_init(PADAPTER padapter)
 
 	rtw_write8(padapter, REG_RX_DRVINFO_SZ_8821C, 0x4);
 
+	/* MAX AMPDU Number = 43, Reg0x4C8[21:16] = 0x2B */
+	rtw_write16(padapter, REG_PROT_MODE_CTRL_8821C + 2, 0x2B2B);
+
 	hal->pci_backdoor_ctrl = registry_par->pci_aspm_config;
 
 	rtw_pci_aspm_config(padapter);
@@ -310,6 +309,9 @@ void rtl8821ce_init_default_value(PADAPTER padapter)
 				BIT_BCNDMAINT0_MSK	|
 				BIT_HSISR_IND_ON_INT_MSK |
 				BIT_C2HCMD_MSK		|
+	#ifdef CONFIG_LPS_LCLK
+				BIT_CPWM_MSK		|
+	#endif
 				BIT_HIGHDOK_MSK	|
 				BIT_MGTDOK_MSK		|
 				BIT_BKDOK_MSK		|
@@ -326,6 +328,7 @@ void rtl8821ce_init_default_value(PADAPTER padapter)
 	pHalData->IntrMaskDefault[1] = (u32)(
 				BIT(9)		| /* TXFOVW */
 				BIT_FOVW_MSK	|
+				BIT_PRETXERR_HANDLE_IMR |
 				0);
 
 	/*

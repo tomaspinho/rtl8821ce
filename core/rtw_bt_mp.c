@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2011 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2007 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,12 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 
 
 #include <drv_types.h>
@@ -471,7 +466,7 @@ MPTBT_FwC2hBtMpCtrl(
 	PMPT_CONTEXT	pMptCtx = &(Adapter->mppriv.mpt_ctx);
 	PBT_EXT_C2H pExtC2h = (PBT_EXT_C2H)tmpBuf;
 
-	if (Adapter->bBTFWReady == _FALSE || Adapter->registrypriv.mp_mode == 0) {
+	if (GET_HAL_DATA(Adapter)->bBTFWReady == _FALSE || Adapter->registrypriv.mp_mode == 0) {
 		/* RTW_INFO("Ignore C2H BT MP Info since not in MP mode\n"); */
 		return;
 	}

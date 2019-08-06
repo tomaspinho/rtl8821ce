@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2011 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2007 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,12 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 #ifndef __PCI_OPS_H_
 #define __PCI_OPS_H_
 
@@ -51,6 +46,17 @@
 	void	rtl8192ee_prepare_bcn_tasklet(void *priv);
 	int	rtl8192ee_interrupt(PADAPTER Adapter);
 	void	rtl8192ee_set_intf_ops(struct _io_ops	*pops);
+#endif
+
+#ifdef CONFIG_RTL8192F
+	u32	rtl8192fe_init_desc_ring(_adapter *padapter);
+	u32	rtl8192fe_free_desc_ring(_adapter *padapter);
+	void	rtl8192fe_reset_desc_ring(_adapter *padapter);
+	int	rtl8192fe_interrupt(PADAPTER Adapter);
+	void	rtl8192fe_recv_tasklet(void *priv);
+	void	rtl8192fe_prepare_bcn_tasklet(void *priv);
+	void	rtl8192fe_set_intf_ops(struct _io_ops	*pops);
+	u8 check_tx_desc_resource(_adapter *padapter, int prio);
 #endif
 
 #ifdef CONFIG_RTL8723B

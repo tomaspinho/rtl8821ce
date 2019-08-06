@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2015 - 2016 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2016 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,16 +11,12 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 #define _RTL8821CE_RECV_C_
 
 #include <drv_types.h>		/* PADAPTER and etc. */
 #include <hal_data.h>		/* HAL_DATA_TYPE */
+#include "../../hal_halmac.h"	/* rtw_halmac_get_rx_desc_size() */
 #include "../rtl8821c.h"
 #include "rtl8821ce.h"
 
@@ -162,13 +158,15 @@ static void rtl8821ce_rx_mpdu(_adapter *padapter)
 	_queue *pfree_recv_queue = &r_priv->free_recv_queue;
 	HAL_DATA_TYPE *pHalData = GET_HAL_DATA(padapter);
 	union recv_frame *precvframe = NULL;
-	u8 *pphy_info = NULL;
 	struct rx_pkt_attrib *pattrib = NULL;
 	int rx_q_idx = RX_MPDU_QUEUE;
 	u32 count = r_priv->rxringcount;
 	u16 remaing_rxdesc = 0;
 	u8 *rx_bd;
 	struct sk_buff *skb;
+	u32 desc_size;
+
+	rtw_halmac_get_rx_desc_size(adapter_to_dvobj(padapter), &desc_size);
 
 	/* RX NORMAL PKT */
 
@@ -237,7 +235,7 @@ static void rtl8821ce_rx_mpdu(_adapter *padapter)
 				       pattrib->shift_sz);
 
 			if (rtw_os_alloc_recvframe(padapter, precvframe,
-				   (skb->data + HALMAC_RX_DESC_SIZE_8821C +
+				   (skb->data + desc_size +
 				    pattrib->drvinfo_sz + pattrib->shift_sz),
 						   skb) == _FAIL) {
 
@@ -257,25 +255,13 @@ static void rtl8821ce_rx_mpdu(_adapter *padapter)
 
 			if (pattrib->pkt_rpt_type == NORMAL_RX) {
 				/* Normal rx packet */
-				if (pattrib->physt)
-					pphy_info = (u8 *)(skb->data) +
-						    HALMAC_RX_DESC_SIZE_8821C;
+				pre_recv_entry(precvframe, pattrib->physt ? ((u8 *)(skb->data) + desc_size) : NULL);
 
-#ifdef CONFIG_CONCURRENT_MODE
-				pre_recv_entry(precvframe, pphy_info);
-#endif
-
-				if (pattrib->physt && pphy_info)
-					rx_query_phy_status(precvframe,
-							    pphy_info);
-
-				rtw_recv_entry(precvframe);
 			} else {
 				if (pattrib->pkt_rpt_type == C2H_PACKET)
+					c2h_pre_handler_rtl8821c(padapter, skb->data, desc_size + pattrib->pkt_len);
 
-					/*To be checked for 8821CE*/
-					c2h_pre_handler_rtl8821c(padapter, skb->data, HALMAC_RX_DESC_SIZE_8821C + pattrib->pkt_len);
-					rtw_free_recvframe(precvframe, pfree_recv_queue);
+				rtw_free_recvframe(precvframe, pfree_recv_queue);
 			}
 			*((dma_addr_t *) skb->cb) =
 				pci_map_single(pdvobjpriv->ppcidev,
@@ -287,6 +273,9 @@ done:
 
 
 		SET_RX_BD_PHYSICAL_ADDR_LOW(rx_bd, *((dma_addr_t *)skb->cb));
+#ifdef CONFIG_64BIT_DMA
+		SET_RX_BD_PHYSICAL_ADDR_HIGH(rx_bd, (*((dma_addr_t *)skb->cb)>>32));
+#endif
 		SET_RX_BD_RXBUFFSIZE(rx_bd, r_priv->rxbuffersize);
 
 		r_priv->rx_ring[rx_q_idx].idx =
@@ -324,7 +313,7 @@ static void rtl8821ce_xmit_beacon(PADAPTER Adapter)
 #if defined(CONFIG_AP_MODE) && defined(CONFIG_NATIVEAP_MLME)
 	struct mlme_priv *pmlmepriv = &Adapter->mlmepriv;
 
-	if (check_fwstate(pmlmepriv, WIFI_AP_STATE)) {
+	if (MLME_IS_AP(Adapter) || MLME_IS_MESH(Adapter)) {
 		/* send_beacon(Adapter); */
 		if (pmlmepriv->update_bcn == _TRUE)
 			tx_beacon_hdl(Adapter, NULL);
@@ -422,6 +411,9 @@ int rtl8821ce_init_rxbd_ring(_adapter *padapter)
 			SET_RX_BD_TOTALRXPKTSIZE(rx_desc, 0);
 			SET_RX_BD_RXBUFFSIZE(rx_desc, r_priv->rxbuffersize);
 			SET_RX_BD_PHYSICAL_ADDR_LOW(rx_desc, *mapping);
+#ifdef CONFIG_64BIT_DMA
+			SET_RX_BD_PHYSICAL_ADDR_HIGH(rx_desc, *mapping >> 32);
+#endif
 
 			buf_desc_debug("RX:rx buffer desc addr[%d] = %x, skb(rx_buf) = %x, buffer addr (virtual = %x, physical = %x)\n",
 				i, (u32)&r_priv->rx_ring[rx_queue_idx].buf_desc[i],

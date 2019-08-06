@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2015 - 2016 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2016 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,17 +11,11 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 #ifndef _RTL8821CE_H_
 #define _RTL8821CE_H_
 
 #include <drv_types.h>		/* PADAPTER */
-#include "../../hal_halmac.h"	/* HALMAC_RX_FIFO_SIZE_8821C */
 
 #define TX_BD_NUM_8821CE	128
 #define RX_BD_NUM_8821CE	128
@@ -44,8 +38,18 @@
 
 #define TX_BUFFER_SEG_NUM	1 /* 0:2 seg, 1: 4 seg, 2: 8 seg. */
 
-#define MAX_RECVBUF_SZ_8821C	HALMAC_RX_FIFO_SIZE_8821C
+#define MAX_RECVBUF_SZ_8821C	16384	/* 16k */
 
+#ifdef CONFIG_64BIT_DMA
+#define SET_TXBUFFER_DESC_LEN_WITH_OFFSET(__pTxDesc, __Offset, __Valeu) \
+	SET_BITS_TO_LE_4BYTE(__pTxDesc+(__Offset*16), 0, 16, __Valeu)
+#define SET_TXBUFFER_DESC_AMSDU_WITH_OFFSET(__pTxDesc, __Offset, __Valeu) \
+	SET_BITS_TO_LE_4BYTE(__pTxDesc+(__Offset*16), 31, 1, __Valeu)
+#define SET_TXBUFFER_DESC_ADD_LOW_WITH_OFFSET(__pTxDesc, __Offset, __Valeu) \
+	SET_BITS_TO_LE_4BYTE(__pTxDesc+(__Offset*16)+4, 0, 32, __Valeu)
+#define SET_TXBUFFER_DESC_ADD_HIGH_WITH_OFFSET(__pTxDesc, __Offset, __Valeu) \
+	SET_BITS_TO_LE_4BYTE(__pTxDesc+(__Offset*16)+8, 0, 32, __Valeu)
+#else
 /* TX BD */
 #define SET_TXBUFFER_DESC_LEN_WITH_OFFSET(__pTxDesc, __Offset, __Valeu) \
 	SET_BITS_TO_LE_4BYTE(__pTxDesc+(__Offset*8), 0, 16, __Valeu)
@@ -53,10 +57,18 @@
 	SET_BITS_TO_LE_4BYTE(__pTxDesc+(__Offset*8), 31, 1, __Valeu)
 #define SET_TXBUFFER_DESC_ADD_LOW_WITH_OFFSET(__pTxDesc, __Offset, __Valeu) \
 	SET_BITS_TO_LE_4BYTE(__pTxDesc+(__Offset*8)+4, 0, 32, __Valeu)
+#define SET_TXBUFFER_DESC_ADD_HIGH_WITH_OFFSET(__pTxDesc, __Offset, __Valeu) 0
+#endif
 
 /* RX BD */
 #define SET_RX_BD_PHYSICAL_ADDR_LOW(__pRxBd, __Value) \
 	SET_BITS_TO_LE_4BYTE(__pRxBd + 0x04, 0, 32, __Value)
+#ifdef CONFIG_64BIT_DMA
+#define SET_RX_BD_PHYSICAL_ADDR_HIGH(__pRxBd, __Value) \
+	SET_BITS_TO_LE_4BYTE(__pRxBd + 0x08, 0, 32, __Value)
+#else
+#define SET_RX_BD_PHYSICAL_ADDR_HIGH(__pRxBd, __Value) 0
+#endif
 #define SET_RX_BD_RXBUFFSIZE(__pRxBd, __Value) \
 	SET_BITS_TO_LE_4BYTE(__pRxBd + 0x00, 0, 14, __Value)
 #define SET_RX_BD_LS(__pRxBd, __Value) \

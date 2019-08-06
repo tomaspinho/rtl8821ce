@@ -1,68 +1,83 @@
+/******************************************************************************
+ *
+ * Copyright(c) 2007 - 2017 Realtek Corporation.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of version 2 of the GNU General Public License as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ *****************************************************************************/
+
 #include "mp_precomp.h"
 #include "phydm_precomp.h"
 
 #if (defined(CONFIG_BB_TXBF_API))
-#if (RTL8822B_SUPPORT == 1)
-/*Add by YuChen for 8822B MU-MIMO API*/
+#if (RTL8822B_SUPPORT == 1 || RTL8192F_SUPPORT == 1 ||\
+	RTL8822C_SUPPORT == 1 || RTL8198F_SUPPORT == 1 || RTL8814B_SUPPORT == 1)
+/*@Add by YuChen for 8822B MU-MIMO API*/
 
 /*this function is only used for BFer*/
-u8
-phydm_get_ndpa_rate(
-	void		*p_dm_void
-)
+u8 phydm_get_ndpa_rate(void *dm_void)
 {
-	struct PHY_DM_STRUCT	*p_dm_odm = (struct PHY_DM_STRUCT *)p_dm_void;
-	u8		ndpa_rate = ODM_RATE6M;
+	struct dm_struct *dm = (struct dm_struct *)dm_void;
+	u8 ndpa_rate = ODM_RATE6M;
 
-	if (p_dm_odm->rssi_min >= 30)	/*link RSSI > 30%*/
+	if (dm->rssi_min >= 30) /*@link RSSI > 30%*/
 		ndpa_rate = ODM_RATE24M;
-	else if (p_dm_odm->rssi_min <= 25)
+	else if (dm->rssi_min <= 25)
 		ndpa_rate = ODM_RATE6M;
 
-	ODM_RT_TRACE(p_dm_odm, PHYDM_COMP_TXBF, ODM_DBG_TRACE, ("[%s] ndpa_rate = 0x%x\n", __func__, ndpa_rate));
+	PHYDM_DBG(dm, DBG_TXBF, "[%s] ndpa_rate = 0x%x\n", __func__, ndpa_rate);
 
 	return ndpa_rate;
-
 }
 
 /*this function is only used for BFer*/
-u8
-phydm_get_beamforming_sounding_info(
-	void		*p_dm_void,
-	u16	*troughput,
-	u8	total_bfee_num,
-	u8	*tx_rate
-)
+u8 phydm_get_beamforming_sounding_info(void *dm_void, u16 *throughput,
+				       u8 total_bfee_num, u8 *tx_rate)
 {
-	u8	idx = 0;
-	u8	soundingdecision = 0xff;
-	struct PHY_DM_STRUCT	*p_dm_odm = (struct PHY_DM_STRUCT *)p_dm_void;
+	u8 idx = 0;
+	u8 snddecision = 0xff;
+	struct dm_struct *dm = (struct dm_struct *)dm_void;
 
 	for (idx = 0; idx < total_bfee_num; idx++) {
-		if (((tx_rate[idx] >= ODM_RATEVHTSS3MCS7) && (tx_rate[idx] <= ODM_RATEVHTSS3MCS9)))
-			soundingdecision = soundingdecision & ~(1 << idx);
+		if (dm->support_ic_type & (ODM_RTL8814A)) {
+			if ((tx_rate[idx] >= ODM_RATEVHTSS3MCS7 &&
+			     tx_rate[idx] <= ODM_RATEVHTSS3MCS9))
+				snddecision = snddecision & ~(1 << idx);
+		} else if (dm->support_ic_type & (ODM_RTL8822B | ODM_RTL8822C |
+			   ODM_RTL8812 | ODM_RTL8192F)) {
+			if ((tx_rate[idx] >= ODM_RATEVHTSS2MCS7 &&
+			     tx_rate[idx] <= ODM_RATEVHTSS2MCS9))
+				snddecision = snddecision & ~(1 << idx);
+		} else if (dm->support_ic_type & (ODM_RTL8814B)) {
+			if ((tx_rate[idx] >= ODM_RATEVHTSS4MCS7 &&
+			     tx_rate[idx] <= ODM_RATEVHTSS4MCS9))
+				snddecision = snddecision & ~(1 << idx);
+		}
 	}
 
 	for (idx = 0; idx < total_bfee_num; idx++) {
-		if (troughput[idx] <= 10)
-			soundingdecision = soundingdecision & ~(1 << idx);
+		if (throughput[idx] <= 10)
+			snddecision = snddecision & ~(1 << idx);
 	}
 
-	ODM_RT_TRACE(p_dm_odm, PHYDM_COMP_TXBF, ODM_DBG_TRACE, ("[%s] soundingdecision = 0x%x\n", __func__, soundingdecision));
+	PHYDM_DBG(dm, DBG_TXBF, "[%s] soundingdecision = 0x%x\n", __func__,
+		  snddecision);
 
-	return soundingdecision;
-
+	return snddecision;
 }
 
 /*this function is only used for BFer*/
-u8
-phydm_get_mu_bfee_snding_decision(
-	void		*p_dm_void,
-	u16	throughput
-)
+u8 phydm_get_mu_bfee_snding_decision(void *dm_void, u16 throughput)
 {
-	u8	snding_score = 0;
-	struct PHY_DM_STRUCT	*p_dm_odm = (struct PHY_DM_STRUCT *)p_dm_void;
+	u8 snding_score = 0;
+	struct dm_struct *dm = (struct dm_struct *)dm_void;
 
 	/*throughput unit is Mbps*/
 	if (throughput >= 500)
@@ -88,31 +103,26 @@ phydm_get_mu_bfee_snding_decision(
 	else
 		snding_score = 0;
 
-	ODM_RT_TRACE(p_dm_odm, PHYDM_COMP_TXBF, ODM_DBG_TRACE, ("[%s] snding_score = 0x%x\n", __func__, snding_score));
+	PHYDM_DBG(dm, DBG_TXBF, "[%s] snding_score = 0x%x\n", __func__,
+		  snding_score);
 
 	return snding_score;
-
 }
-
 
 #endif
 #if (DM_ODM_SUPPORT_TYPE != ODM_AP)
-u8
-beamforming_get_htndp_tx_rate(
-	void	*p_dm_void,
-	u8	comp_steering_num_of_bfer
-)
+u8 beamforming_get_htndp_tx_rate(void *dm_void, u8 bfer_str_num)
 {
-	struct PHY_DM_STRUCT	*p_dm_odm = (struct PHY_DM_STRUCT *)p_dm_void;
+	struct dm_struct *dm = (struct dm_struct *)dm_void;
 	u8 nr_index = 0;
 	u8 ndp_tx_rate;
-	/*Find nr*/
+/*@Find nr*/
 #if (RTL8814A_SUPPORT == 1)
-	if (p_dm_odm->support_ic_type & ODM_RTL8814A)
-		nr_index = tx_bf_nr(hal_txbf_8814a_get_ntx(p_dm_odm), comp_steering_num_of_bfer);
+	if (dm->support_ic_type & ODM_RTL8814A)
+		nr_index = tx_bf_nr(hal_txbf_8814a_get_ntx(dm), bfer_str_num);
 	else
 #endif
-		nr_index = tx_bf_nr(1, comp_steering_num_of_bfer);
+		nr_index = tx_bf_nr(1, bfer_str_num);
 
 	switch (nr_index) {
 	case 1:
@@ -133,25 +143,20 @@ beamforming_get_htndp_tx_rate(
 	}
 
 	return ndp_tx_rate;
-
 }
 
-u8
-beamforming_get_vht_ndp_tx_rate(
-	void	*p_dm_void,
-	u8	comp_steering_num_of_bfer
-)
+u8 beamforming_get_vht_ndp_tx_rate(void *dm_void, u8 bfer_str_num)
 {
-	struct PHY_DM_STRUCT	*p_dm_odm = (struct PHY_DM_STRUCT *)p_dm_void;
+	struct dm_struct *dm = (struct dm_struct *)dm_void;
 	u8 nr_index = 0;
 	u8 ndp_tx_rate;
-	/*Find nr*/
+/*@Find nr*/
 #if (RTL8814A_SUPPORT == 1)
-	if (p_dm_odm->support_ic_type & ODM_RTL8814A)
-		nr_index = tx_bf_nr(hal_txbf_8814a_get_ntx(p_dm_odm), comp_steering_num_of_bfer);
+	if (dm->support_ic_type & ODM_RTL8814A)
+		nr_index = tx_bf_nr(hal_txbf_8814a_get_ntx(dm), bfer_str_num);
 	else
 #endif
-		nr_index = tx_bf_nr(1, comp_steering_num_of_bfer);
+		nr_index = tx_bf_nr(1, bfer_str_num);
 
 	switch (nr_index) {
 	case 1:
@@ -172,7 +177,6 @@ beamforming_get_vht_ndp_tx_rate(
 	}
 
 	return ndp_tx_rate;
-
 }
 #endif
 

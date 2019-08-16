@@ -234,6 +234,7 @@
 #ifdef CONFIG_RTL8821C
 	#undef RTL8821C_SUPPORT
 	#define RTL8821C_SUPPORT				1
+	#define CONFIG_DFS	/* Enable 5G band 2&3 channel */
 	#ifndef CONFIG_FW_C2H_PKT
 		#define CONFIG_FW_C2H_PKT
 	#endif

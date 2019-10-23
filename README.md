@@ -53,7 +53,7 @@ Then run the installation script:
 sudo ./dkms-remove.sh
 ```
 
-## Reporting issuess
+## Reporting issues
 When reporting issues, please make sure that debugging is enabled. To enable debugging either set `MAKEFLAGS="CONFIG_RTW_DEBUG = y"` before compilation or edit Makefile:
 ```
 CONFIG_RTW_DEBUG = y

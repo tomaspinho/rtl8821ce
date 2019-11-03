@@ -21,11 +21,7 @@ ifeq ($(GCC_VER_49),1)
 EXTRA_CFLAGS += -Wno-date-time	# Fix compile error && warning on gcc 4.9 and later
 endif
 
-ifneq (,$(findstring /usr/lib/dkms,$(PATH)))
-    export TopDIR ?= $(shell pwd)
-else
-    export TopDIR ?= $(srctree)/$(src)
-endif
+export TopDIR ?= $(shell pwd)
 
 EXTRA_CFLAGS += -I$(TopDIR)/include
 

@@ -21,9 +21,11 @@ ifeq ($(GCC_VER_49),1)
 EXTRA_CFLAGS += -Wno-date-time	# Fix compile error && warning on gcc 4.9 and later
 endif
 
-ifneq (,$(findstring /usr/lib/dkms,$(PATH)))
+ifeq (,$(srctree)))
+    # make processing
     export TopDIR ?= $(shell pwd)
 else
+    # dkms processing or in tree compilation
     export TopDIR ?= $(srctree)/$(src)
 endif
 
@@ -268,7 +270,7 @@ EXTRA_CFLAGS += -DCONFIG_RTL8188E
 
 _HAL_INTFS_FILES +=	hal/HalPwrSeqCmd.o \
 					hal/$(RTL871X)/Hal8188EPwrSeq.o\
- 					hal/$(RTL871X)/$(RTL871X)_xmit.o\
+					hal/$(RTL871X)/$(RTL871X)_xmit.o\
 					hal/$(RTL871X)/$(RTL871X)_sreset.o
 
 _HAL_INTFS_FILES +=	hal/$(RTL871X)/$(RTL871X)_hal_init.o \

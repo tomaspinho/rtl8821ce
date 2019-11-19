@@ -7,7 +7,6 @@ else
   echo "About to run dkms removal steps..."
 fi
 
-DRV_DIR=rtl8821ce
 DRV_NAME=rtl8821ce
 DRV_VERSION=v5.5.2_34066.20190614
 

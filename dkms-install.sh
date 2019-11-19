@@ -7,11 +7,10 @@ else
   echo "About to run dkms install steps..."
 fi
 
-DRV_DIR=rtl8821ce
 DRV_NAME=rtl8821ce
 DRV_VERSION=v5.5.2_34066.20190614
 
-cp -r ../${DRV_DIR} /usr/src/${DRV_NAME}-${DRV_VERSION}
+cp -r . /usr/src/${DRV_NAME}-${DRV_VERSION}
 
 dkms add -m ${DRV_NAME} -v ${DRV_VERSION}
 dkms build -m ${DRV_NAME} -v ${DRV_VERSION}

@@ -14,10 +14,12 @@ This driver can be installed using [DKMS](http://linux.dell.com/dkms/). This is 
 Make sure you have a proper build environment and `dkms` installed.
 
 ### Ubuntu & Debian
+The following steps are required prior to building the driver on Ubuntu/Debian:
 ```
 sudo apt install bc module-assistant build-essential dkms
 sudo m-a prepare
 ```
+Ubuntu users may also install the prebuilt [rtl8821ce-dkms](https://packages.ubuntu.com/bionic-updates/rtl8821ce-dkms) package, an older version of the driver maintained by the Ubuntu MOTU Developers group for bionic, eoan and focal. It has been known to work in cases where the newer driver available here does not. Bugs and issues with that package should be reported at [Launchpad](https://launchpad.net/ubuntu/+source/rtl8821ce/+bugs) rather than here.
 
 ### Arch Linux
 Make sure you have the `base-devel` package group installed before you proceed for the necessary compilation tools.
@@ -31,6 +33,13 @@ Install [rtl8821ce-dkms-git](https://aur.archlinux.org/packages/rtl8821ce-dkms-g
 sudo pacman -Syu linux-headers dkms
 ```
 If you are running a non-vanilla kernel then install the headers to match the kernel package. Proceed to the section below.
+
+### Gentoo Linux
+An unofficial Gentoo package is available, using this repository as upstream. It is available from the [trolltoo](https://github.com/dallenwilson/trolltoo) overlay. Gentoo does not use or require dkms for packaged drivers.
+```
+# layman -a trolltoo
+# emerge --ask net-wireless/rtl8821ce-driver
+```
 
 ### Manual installation of driver
 In order to install the driver open a terminal in the directory with the source code and execute the following command:

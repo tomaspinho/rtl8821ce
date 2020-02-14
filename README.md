@@ -51,6 +51,27 @@ Then run the installation script:
 sudo ./dkms-remove.sh
 ```
 
+## Upgrading driver
+Remove the driver:
+```
+sudo ./dkms-remove.sh
+```
+
+Make sure you have your local copy of this repository fully updated:
+```
+git pull
+```
+
+Clean any stale binaries:
+```
+make clean
+```
+
+Install again:
+```
+sudo ./dkms-install.sh
+```
+
 ## Reporting issues
 When reporting issues, please make sure that debugging is enabled. To enable debugging either set `MAKEFLAGS="CONFIG_RTW_DEBUG = y"` before compilation or edit Makefile:
 ```

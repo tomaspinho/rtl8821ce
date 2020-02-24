@@ -10,8 +10,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: install dependencies
-      run: sudo apt install bc module-assistant build-essential dkms
+      run: sudo apt install bc module-assistant build-essential
     - name: prepare build
       run: sudo m-a prepare
-    - name: build and install dkms
-      run: sudo ./dkms-install.sh
+    - name: build
+      run: make

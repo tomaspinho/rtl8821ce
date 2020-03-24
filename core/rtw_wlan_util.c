@@ -2290,6 +2290,8 @@ u8 support_rate_ranges[] = {
 	IEEE80211_OFDM_RATE_36MB,
 	IEEE80211_OFDM_RATE_48MB,
 	IEEE80211_OFDM_RATE_54MB,
+	0x2c, // 22MB
+	0x42, // 33MB
 };
 
 inline bool match_ranges(u16 EID, u32 value)

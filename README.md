@@ -30,7 +30,7 @@ Install [rtl8821ce-dkms-git](https://aur.archlinux.org/packages/rtl8821ce-dkms-g
 
 #### Dependencies for manual installation on Arch Linux
 ```
-sudo pacman -Syu linux-headers dkms
+sudo pacman -Syu linux-headers dkms bc
 ```
 If you are running a non-vanilla kernel then install the headers to match the kernel package. Proceed to the section below.
 

@@ -1,10 +1,10 @@
 FROM ubuntu:latest AS build
 
 ARG KVER=5.8
-ARG URL_LINUX_HEADERS=https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.8-rc2/amd64/linux-headers-5.8.0-050800_5.8.0-050800.202006212330_all.deb
-ARG URL_LINUX_HEADERS_GENERIC=https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.8-rc2/amd64/linux-headers-5.8.0-050800-generic_5.8.0-050800.202006212330_amd64.deb
-ARG URL_LINUX_MODULES=https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.8-rc2/amd64/linux-modules-5.8.0-050800-generic_5.8.0-050800.202006212330_amd64.deb
-ARG URL_LINUX_IMAGE=https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.8-rc2/amd64/linux-image-unsigned-5.8.0-050800-generic_5.8.0-050800.202006212330_amd64.deb
+ARG URL_LINUX_HEADERS=https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.8/amd64/linux-headers-5.8.0-050800_5.8.0-050800.202008022230_all.deb
+ARG URL_LINUX_HEADERS_GENERIC=https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.8/amd64/linux-headers-5.8.0-050800-generic_5.8.0-050800.202008022230_amd64.deb
+ARG URL_LINUX_MODULES=https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.8/amd64/linux-modules-5.8.0-050800-generic_5.8.0-050800.202008022230_amd64.deb
+ARG URL_LINUX_IMAGE=https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.8/amd64/linux-image-unsigned-5.8.0-050800-generic_5.8.0-050800.202008022230_amd64.deb
 
 ENV WORKDIR /build/
 

@@ -26,7 +26,7 @@ Make sure you have the `base-devel` package group installed before you proceed f
 
 #### Installing from AUR
 
-Install [rtl8821ce-dkms-git](https://aur.archlinux.org/packages/rtl8821ce-dkms-git/) from the [AUR](https://wiki.archlinux.org/index.php/Arch_User_Repository).
+Install [rtl8821ce-dkms](https://aur.archlinux.org/packages/rtl8821ce-dkms/) from the [AUR](https://wiki.archlinux.org/index.php/Arch_User_Repository).
 
 #### Dependencies for manual installation on Arch Linux
 ```
@@ -51,7 +51,7 @@ sudo ./dkms-install.sh
 Open a terminal window and git clone the repository to your local disk
 
 ```
-git clone https://github.com/tomaspinho/rtl8821ce.git
+git clone https://github.com/MounirErhili/rtl8821ce.git
 cd rtl8821ce
 ```
 

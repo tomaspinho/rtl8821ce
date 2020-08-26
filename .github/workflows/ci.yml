@@ -14,4 +14,4 @@ jobs:
     - name: prepare build
       run: sudo m-a prepare
     - name: build
-      run: make
+      run: make KVER=$KVER

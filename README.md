@@ -21,6 +21,12 @@ sudo m-a prepare
 ```
 Ubuntu users may also install the prebuilt [rtl8821ce-dkms](https://packages.ubuntu.com/bionic-updates/rtl8821ce-dkms) package, an older version of the driver maintained by the Ubuntu MOTU Developers group for bionic, eoan and focal. It has been known to work in cases where the newer driver available here does not. Bugs and issues with that package should be reported at [Launchpad](https://launchpad.net/ubuntu/+source/rtl8821ce/+bugs) rather than here.
 
+### Fedora Linux
+The following packages are required to build the driver on Fedora:
+```
+sudo dnf install bc elfutils kernel-devel kernel-headers make cmake dkms guile22
+```
+
 ### Arch Linux
 Make sure you have the `base-devel` package group installed before you proceed for the necessary compilation tools.
 
@@ -115,6 +121,16 @@ Some new Yoga laptops (like the Yoga 530) come with `rtl8821ce` as the Wi-Fi/Blu
 
 ```
 sudo modprobe -r ideapad_laptop
+```
+
+### Installation with no Network
+
+This way you are unable to use package manager and have to find all packages and their dependencies manually, and send them to your machine. It's recommended to take packages from [pkgs.org](https://pkgs.org/).  
+Most likely that you'll need `bc`, `elfutils`, `kernel-devel`, `kernel-headers`, `linux-headers`, `make`, `cmake`, `dkms` for proper work.  
+After copying packages and repo, make sure that scripts are executable:
+```
+chmod +x *.sh 
+sudo ./dkms-install.sh
 ```
 
 ### BlueTooth is not working

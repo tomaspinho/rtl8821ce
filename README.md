@@ -124,3 +124,22 @@ This may be due to the Kernel loading up the wrong firmware file for this card. 
 ### Secure Boot
 
 If your system uses Secure Boot, disable it via BIOS settings, otherwise the kernel will not accept user-supplied modules.
+
+### Unstable and drop connection
+
+The problem may be due to periodic scanning of access points by the network applet.
+
+> This fix worked helpful on Pop! _OS/Ubuntu 20.10 and Fedora 33. Both with GNOME and NetworkManager. [#179](https://github.com/tomaspinho/rtl8821ce/issues/179)
+
+Set the BSSID from your network applet. In GNOME this can be done in `WiFi Settings > Your profile > Identity > BSSID`.
+
+We are going to disable the *Connectivity Check* option in NetworkManager. This by editing the file in `/var/lib/NetworkManager/NetworkManager-intern.conf` and adding the following instructions:
+
+```
+[connectivity]
+.set.enabled=false
+```
+
+at the end.
+
+Then just reboot or restart the NetworkManager unit to fix the problem.

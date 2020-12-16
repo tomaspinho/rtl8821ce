@@ -141,3 +141,16 @@ We are going to disable the *Connectivity Check* option in NetworkManager. This 
 ```
 
 Then, just reboot or restart the NetworkManager unit to fix the problem.
+
+### Wi-Fi not working for kernel >= 5.9
+The Linux Kernel 5.9 version comes with a broken `rtw88` module developed by Realtek that has poor compatibility with most revision of the 8821ce chip.
+
+You must disable it by adding the following to your module blacklists (`/etc/modprobe.d/blacklist.conf`):
+
+```
+blacklist rtw88_8821ce
+``` 
+
+Then, make sure you have the rtl8821ce module correctly installed. 
+
+Turn off your computer, wait a few seconds (to force firmware reload) and then turn it on again.

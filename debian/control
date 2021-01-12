@@ -1,0 +1,27 @@
+Source: rtl8821ce
+Section: misc
+Priority: optional
+Maintainer: liuxin <liuxin@uniontech.com>
+Build-Depends: debhelper (>= 10),
+                dkms,
+                bc,
+                module-assistant,
+                build-essential
+Standards-Version: 4.3.0
+Vcs-Browser: https://github.com/tomaspinho/rtl8821ce
+Vcs-Git: https://github.com/tomaspinho/rtl8821ce.git
+
+Package: rtl8821ce-dkms
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}
+Provides: rtl8821ce-module
+Description: DKMS files to build and install rtl8821ce
+ The rtl8821ce driver provides the driver for USB wifi adapter.
+ .
+ This package contains the DKMS files to build and install rtl8821ce.
+ .
+ To install this package, you have to install the header files for your
+ current kernel manually (usually included in the "linux-headers-<your
+ architecture>").
+

@@ -17,6 +17,12 @@
 #ifdef CONFIG_BT_COEXIST
 #include <hal_btcoex.h>
 
+#ifdef PLATFORM_LINUX
+	#ifndef KERNEL_DS
+		#define KERNEL_DS   MAKE_MM_SEG(-1UL)   // <----- 0xffffffffffffffff
+	#endif
+#endif
+
 void rtw_btcoex_Initialize(PADAPTER padapter)
 {
 	hal_btcoex_Initialize(padapter);
@@ -1478,6 +1484,8 @@ u8 rtw_btcoex_sendmsgbysocket(_adapter *padapter, u8 *msg, u8 msg_size, bool for
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	oldfs = get_fs();
 	set_fs(KERNEL_DS);
+#else
+	oldfs = force_uaccess_begin();
 #endif
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
@@ -1487,6 +1495,8 @@ u8 rtw_btcoex_sendmsgbysocket(_adapter *padapter, u8 *msg, u8 msg_size, bool for
 #endif
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	set_fs(oldfs);
+#else
+	force_uaccess_end(oldfs);
 #endif
 	if (error < 0) {
 		RTW_INFO("Error when sendimg msg, error:%d\n", error);

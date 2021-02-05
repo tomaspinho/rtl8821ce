@@ -26,6 +26,12 @@
 	#define IPv6_PROTOCOL_OFFSET	20
 #endif
 
+#ifdef PLATFORM_LINUX
+	#ifndef KERNEL_DS
+		#define KERNEL_DS   MAKE_MM_SEG(-1UL)   // <----- 0xffffffffffffffff
+	#endif
+#endif
+
 unsigned char ARTHEROS_OUI1[] = {0x00, 0x03, 0x7f};
 unsigned char ARTHEROS_OUI2[] = {0x00, 0x13, 0x74};
 
@@ -4751,9 +4757,11 @@ int rtw_dev_nlo_info_set(struct pno_nlo_info *nlo_info, pno_ssid_t *ssid,
 		return 0;
 	}
 
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 10, 0))
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	fs = get_fs();
 	set_fs(KERNEL_DS);
+#else
+	fs = force_uaccess_begin();
 #endif
 
 	source = rtw_zmalloc(2048);
@@ -4764,8 +4772,10 @@ int rtw_dev_nlo_info_set(struct pno_nlo_info *nlo_info, pno_ssid_t *ssid,
 		rtw_mfree(source, 2048);
 	}
 
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 10, 0))
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	set_fs(fs);
+#else
+	force_uaccess_end(fs);
 #endif
 	filp_close(fp, NULL);
 

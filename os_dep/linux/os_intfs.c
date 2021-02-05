@@ -23,6 +23,11 @@
 
 #endif
 
+#ifdef PLATFORM_LINUX
+	#ifndef KERNEL_DS
+		#define KERNEL_DS   MAKE_MM_SEG(-1UL)   // <----- 0xffffffffffffffff
+	#endif
+#endif
 
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Realtek Wireless Lan Driver");
@@ -4011,6 +4016,8 @@ static int route_dump(u32 *gw_addr , int *gw_index)
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	oldfs = get_fs();
 	set_fs(KERNEL_DS);
+#else
+	oldfs = force_uaccess_begin();
 #endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
 	err = sock_sendmsg(sock, &msg);
@@ -4019,6 +4026,8 @@ static int route_dump(u32 *gw_addr , int *gw_index)
 #endif
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	set_fs(oldfs);
+#else
+	force_uaccess_end(oldfs);
 #endif
 
 	if (err < 0)
@@ -4047,6 +4056,8 @@ restart:
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		oldfs = get_fs();
 		set_fs(KERNEL_DS);
+#else
+		oldfs = force_uaccess_begin();
 #endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 7, 0))
 		err = sock_recvmsg(sock, &msg, MSG_DONTWAIT);
@@ -4055,6 +4066,9 @@ restart:
 #endif
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		set_fs(oldfs);
+#else
+		force_uaccess_end(oldfs);
+
 #endif
 
 		if (err < 0)
@@ -4129,6 +4143,8 @@ done:
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		oldfs = get_fs();
 		set_fs(KERNEL_DS);
+#else
+		oldfs = force_uaccess_begin();
 #endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
 		err = sock_sendmsg(sock, &msg);
@@ -4137,6 +4153,8 @@ done:
 #endif
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		set_fs(oldfs);
+#else
+		force_uaccess_end(oldfs)
 #endif
 
 		if (err > 0)

@@ -24,11 +24,16 @@
 #ifdef PLATFORM_LINUX
 atomic_t _malloc_cnt = ATOMIC_INIT(0);
 atomic_t _malloc_size = ATOMIC_INIT(0);
+#ifndef KERNEL_DS
+#define KERNEL_DS   MAKE_MM_SEG(-1UL)   // <----- 0xffffffffffffffff
+#endif
 #endif
 #endif /* DBG_MEMORY_LEAK */
 
 
+
 #if defined(PLATFORM_LINUX)
+
 /*
 * Translate the OS dependent @param error_code to OS independent RTW_STATUS_CODE
 * @return: one of RTW_STATUS_CODE
@@ -2203,6 +2208,8 @@ static int isFileReadable(const char *path, u32 *sz)
 	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		oldfs = get_fs();
 		set_fs(KERNEL_DS);
+	#else
+		oldfs = force_uaccess_begin();;
 	#endif
 
 		if (1 != readFile(fp, &buf, 1))
@@ -2218,6 +2225,8 @@ static int isFileReadable(const char *path, u32 *sz)
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		set_fs(oldfs);
+#else
+        force_uaccess_end(oldfs);
 #endif
 		filp_close(fp, NULL);
 	}
@@ -2245,10 +2254,14 @@ static int retriveFromFile(const char *path, u8 *buf, u32 sz)
 		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 			oldfs = get_fs();
 			set_fs(KERNEL_DS);
+		#else
+			oldfs = force_uaccess_begin();
 		#endif
 			ret = readFile(fp, buf, sz);
 		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 			set_fs(oldfs);
+		#else
+      		force_uaccess_end(oldfs);
 		#endif
 			closeFile(fp);
 
@@ -2284,10 +2297,14 @@ static int storeToFile(const char *path, u8 *buf, u32 sz)
 		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 			oldfs = get_fs();
 			set_fs(KERNEL_DS);
+		#else
+	   		oldfs = force_uaccess_begin();
 		#endif
 			ret = writeFile(fp, buf, sz);
 		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 			set_fs(oldfs);
+		#else
+			force_uaccess_end(oldfs);
 		#endif
 			closeFile(fp);
 

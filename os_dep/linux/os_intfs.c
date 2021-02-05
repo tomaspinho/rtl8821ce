@@ -23,6 +23,11 @@
 
 #endif
 
+#ifdef PLATFORM_LINUX
+	#ifndef KERNEL_DS
+		#define KERNEL_DS   MAKE_MM_SEG(-1UL)   // <----- 0xffffffffffffffff
+	#endif
+#endif
 
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Realtek Wireless Lan Driver");

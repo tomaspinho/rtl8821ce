@@ -19,6 +19,11 @@
 #endif
 #include <drv_types.h>
 
+#ifdef PLATFORM_LINUX
+	#ifndef KERNEL_DS
+		#define KERNEL_DS   MAKE_MM_SEG(-1UL)   // <----- 0xffffffffffffffff
+	#endif
+#endif
 
 u8 RTW_WPA_OUI_TYPE[] = { 0x00, 0x50, 0xf2, 1 };
 u16 RTW_WPA_VERSION = 1;

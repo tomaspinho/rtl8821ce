@@ -26,6 +26,12 @@
 	#define IPv6_PROTOCOL_OFFSET	20
 #endif
 
+#ifdef PLATFORM_LINUX
+	#ifndef KERNEL_DS
+		#define KERNEL_DS   MAKE_MM_SEG(-1UL)   // <----- 0xffffffffffffffff
+	#endif
+#endif
+
 unsigned char ARTHEROS_OUI1[] = {0x00, 0x03, 0x7f};
 unsigned char ARTHEROS_OUI2[] = {0x00, 0x13, 0x74};
 

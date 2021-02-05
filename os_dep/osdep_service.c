@@ -24,6 +24,9 @@
 #ifdef PLATFORM_LINUX
 atomic_t _malloc_cnt = ATOMIC_INIT(0);
 atomic_t _malloc_size = ATOMIC_INIT(0);
+#ifndef KERNEL_DS
+#define KERNEL_DS   MAKE_MM_SEG(-1UL)   // <----- 0xffffffffffffffff
+#endif
 #endif
 #endif /* DBG_MEMORY_LEAK */
 

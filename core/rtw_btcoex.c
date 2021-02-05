@@ -17,6 +17,12 @@
 #ifdef CONFIG_BT_COEXIST
 #include <hal_btcoex.h>
 
+#ifdef PLATFORM_LINUX
+	#ifndef KERNEL_DS
+		#define KERNEL_DS   MAKE_MM_SEG(-1UL)   // <----- 0xffffffffffffffff
+	#endif
+#endif
+
 void rtw_btcoex_Initialize(PADAPTER padapter)
 {
 	hal_btcoex_Initialize(padapter);

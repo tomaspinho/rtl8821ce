@@ -2203,6 +2203,9 @@ static int isFileReadable(const char *path, u32 *sz)
 	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		oldfs = get_fs();
 		set_fs(KERNEL_DS);
+	#else
+		oldfs = (current_thread_info()->addr_limit);
+		current_thread_info()->addr_limit = ((mm_segment_t) { (-1UL) });
 	#endif
 
 		if (1 != readFile(fp, &buf, 1))
@@ -2218,6 +2221,9 @@ static int isFileReadable(const char *path, u32 *sz)
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		set_fs(oldfs);
+#else
+		current_thread_info()->addr_limit = (oldfs);
+
 #endif
 		filp_close(fp, NULL);
 	}
@@ -2245,10 +2251,15 @@ static int retriveFromFile(const char *path, u8 *buf, u32 sz)
 		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 			oldfs = get_fs();
 			set_fs(KERNEL_DS);
+		#else
+			oldfs = (current_thread_info()->addr_limit);
+				current_thread_info()->addr_limit = ((mm_segment_t) { (-1UL) });
 		#endif
 			ret = readFile(fp, buf, sz);
 		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 			set_fs(oldfs);
+		#else
+			current_thread_info()->addr_limit = (oldfs);
 		#endif
 			closeFile(fp);
 
@@ -2284,10 +2295,15 @@ static int storeToFile(const char *path, u8 *buf, u32 sz)
 		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 			oldfs = get_fs();
 			set_fs(KERNEL_DS);
+		#else
+			oldfs = (current_thread_info()->addr_limit);
+			current_thread_info()->addr_limit = ((mm_segment_t) { (-1UL) });
 		#endif
 			ret = writeFile(fp, buf, sz);
 		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 			set_fs(oldfs);
+		#else
+			current_thread_info()->addr_limit = (oldfs);
 		#endif
 			closeFile(fp);
 

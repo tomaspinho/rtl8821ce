@@ -4751,12 +4751,11 @@ int rtw_dev_nlo_info_set(struct pno_nlo_info *nlo_info, pno_ssid_t *ssid,
 		return 0;
 	}
 
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 10, 0))
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
 	fs = get_fs();
 	set_fs(KERNEL_DS);
 #else
-	fs = (current_thread_info()->addr_limit);
-	current_thread_info()->addr_limit = (MAKE_MM_SEG(-1UL));
+	fs = force_uaccess_begin();
 #endif
 
 	source = rtw_zmalloc(2048);
@@ -4767,10 +4766,10 @@ int rtw_dev_nlo_info_set(struct pno_nlo_info *nlo_info, pno_ssid_t *ssid,
 		rtw_mfree(source, 2048);
 	}
 
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 10, 0))
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	set_fs(fs);
 #else
-	current_thread_info()->addr_limit = (fs);
+	force_uaccess_end(fs);
 #endif
 	filp_close(fp, NULL);
 

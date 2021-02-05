@@ -4012,8 +4012,7 @@ static int route_dump(u32 *gw_addr , int *gw_index)
 	oldfs = get_fs();
 	set_fs(KERNEL_DS);
 #else
-	oldfs = (current_thread_info()->addr_limit);
-	current_thread_info()->addr_limit = ((mm_segment_t) { (-1UL) });
+	oldfs = force_uaccess_begin();
 #endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
 	err = sock_sendmsg(sock, &msg);
@@ -4023,7 +4022,7 @@ static int route_dump(u32 *gw_addr , int *gw_index)
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	set_fs(oldfs);
 #else
-	current_thread_info()->addr_limit = (oldfs);
+	force_uaccess_end(oldfs);
 #endif
 
 	if (err < 0)
@@ -4053,8 +4052,7 @@ restart:
 		oldfs = get_fs();
 		set_fs(KERNEL_DS);
 #else
-	oldfs = (current_thread_info()->addr_limit);
-	current_thread_info()->addr_limit = ((mm_segment_t) { (-1UL) });
+		oldfs = force_uaccess_begin();
 #endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 7, 0))
 		err = sock_recvmsg(sock, &msg, MSG_DONTWAIT);
@@ -4064,7 +4062,7 @@ restart:
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		set_fs(oldfs);
 #else
-		current_thread_info()->addr_limit = (oldfs);
+		force_uaccess_end(oldfs);
 
 #endif
 
@@ -4141,8 +4139,7 @@ done:
 		oldfs = get_fs();
 		set_fs(KERNEL_DS);
 #else
-		oldfs = (current_thread_info()->addr_limit);
-		current_thread_info()->addr_limit = ((mm_segment_t) { (-1UL) });
+		oldfs = force_uaccess_begin();
 #endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
 		err = sock_sendmsg(sock, &msg);
@@ -4152,8 +4149,7 @@ done:
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		set_fs(oldfs);
 #else
-		current_thread_info()->addr_limit = (oldfs);
-
+		force_uaccess_end(oldfs)
 #endif
 
 		if (err > 0)

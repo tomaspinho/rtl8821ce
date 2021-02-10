@@ -1327,7 +1327,9 @@ unsigned int rtw_classify8021d(struct sk_buff *skb)
 }
 
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,19,0)) || defined(RHEL_RELEASE_CODE) || defined(CENTOS_RELEASE_CODE)
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,19,0)) || \
+    ( (LINUX_VERSION_CODE >= KERNEL_VERSION(4,18,0)) && \
+	( defined(RHEL_RELEASE_CODE) || defined(CENTOS_RELEASE_CODE) ) )
 static u16 rtw_select_queue(struct net_device *dev, struct sk_buff *skb
     , struct net_device *sb_dev
     #if (LINUX_VERSION_CODE < KERNEL_VERSION(5,2,0))

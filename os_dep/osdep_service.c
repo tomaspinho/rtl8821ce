@@ -154,7 +154,7 @@ void *_rtw_malloc(u32 sz)
 		pbuf = dvr_malloc(sz);
 	else
 #endif
-		pbuf = kzalloc(sz, GFP_KERNEL | __GFP_RETRY_MAYFAIL /*in_interrupt() ? GFP_ATOMIC : GFP_KERNEL*/);
+		pbuf = kzalloc(sz, GFP_KERNEL | __GFP_NOFAIL /*in_interrupt() ? GFP_ATOMIC : GFP_KERNEL*/);
 
 #endif
 #ifdef PLATFORM_FREEBSD

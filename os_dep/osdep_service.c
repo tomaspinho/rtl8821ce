@@ -154,8 +154,8 @@ void *_rtw_malloc(u32 sz)
 		pbuf = dvr_malloc(sz);
 	else
 #endif
-		pbuf = kzalloc(sz, GFP_KERNEL | __GFP_NOFAIL /*in_interrupt() ? GFP_ATOMIC : GFP_KERNEL*/);
-
+		// pbuf = kmalloc(sz, in_interrupt() ? GFP_ATOMIC : GFP_KERNEL);
+		pbuf = kvmalloc(sz, GFP_KERNEL | __GFP_NOFAIL);
 #endif
 #ifdef PLATFORM_FREEBSD
 	pbuf = malloc(sz, M_DEVBUF, M_NOWAIT);
@@ -212,7 +212,7 @@ void _rtw_mfree(void *pbuf, u32 sz)
 		dvr_free(pbuf);
 	else
 #endif
-		kfree(pbuf);
+		kvfree(pbuf);
 
 #endif
 #ifdef PLATFORM_FREEBSD
@@ -1042,14 +1042,15 @@ Otherwise, there will be racing condition.
 u32	rtw_is_list_empty(_list *phead)
 {
 
-#ifdef PLATFORM_LINUX
+#if defined(PLATFORM_LINUX) || defined(PLATFORM_FREEBSD)
 
-	if (list_empty(phead))
+	if (phead->next == phead)
 		return _TRUE;
 	else
 		return _FALSE;
 
 #endif
+/*
 #ifdef PLATFORM_FREEBSD
 
 	if (phead->next == phead)
@@ -1058,7 +1059,7 @@ u32	rtw_is_list_empty(_list *phead)
 		return _FALSE;
 
 #endif
-
+*/
 
 #ifdef PLATFORM_WINDOWS
 

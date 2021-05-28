@@ -154,3 +154,13 @@ blacklist rtw88_8821ce
 Then, make sure you have the rtl8821ce module correctly installed. 
 
 Turn off your computer, wait a few seconds (to force firmware reload) and then turn it on again.
+
+### Wi-Fi and Bluetooth don't work after suspend
+
+This is a bug that won't be fixed until/if Realtek implements proper power management themselves.
+Given they are now only working in `rtw88`, this driver will most likely never be fixed in this regard.
+Please avoid opening issues about this.
+
+### Monitor (promiscuous) mode doesn't work
+This driver doesn't support it and never will.
+Please avoid opening issues about this.

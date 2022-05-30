@@ -2214,7 +2214,7 @@ static int isFileReadable(const char *path, u32 *sz)
 	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		oldfs = get_fs();
 		set_fs(KERNEL_DS);
-	#else
+	#elif (LINUX_VERSION_CODE < KERNEL_VERSION(5, 18, 0))
 		oldfs = force_uaccess_begin();;
 	#endif
 
@@ -2231,8 +2231,8 @@ static int isFileReadable(const char *path, u32 *sz)
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		set_fs(oldfs);
-#else
-        force_uaccess_end(oldfs);
+#elif (LINUX_VERSION_CODE < KERNEL_VERSION(5, 18, 0))
+		force_uaccess_end(oldfs);
 #endif
 		filp_close(fp, NULL);
 	}
@@ -2260,13 +2260,13 @@ static int retriveFromFile(const char *path, u8 *buf, u32 sz)
 		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 			oldfs = get_fs();
 			set_fs(KERNEL_DS);
-		#else
+		#elif (LINUX_VERSION_CODE < KERNEL_VERSION(5, 18, 0))
 			oldfs = force_uaccess_begin();
 		#endif
 			ret = readFile(fp, buf, sz);
 		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 			set_fs(oldfs);
-		#else
+		#elif (LINUX_VERSION_CODE < KERNEL_VERSION(5, 18, 0))
       		force_uaccess_end(oldfs);
 		#endif
 			closeFile(fp);
@@ -2303,13 +2303,13 @@ static int storeToFile(const char *path, u8 *buf, u32 sz)
 		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 			oldfs = get_fs();
 			set_fs(KERNEL_DS);
-		#else
+		#elif (LINUX_VERSION_CODE < KERNEL_VERSION(5, 18, 0))
 	   		oldfs = force_uaccess_begin();
 		#endif
 			ret = writeFile(fp, buf, sz);
 		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 			set_fs(oldfs);
-		#else
+		#elif (LINUX_VERSION_CODE < KERNEL_VERSION(5, 18, 0))
 			force_uaccess_end(oldfs);
 		#endif
 			closeFile(fp);

@@ -55,7 +55,7 @@ git clone https://github.com/tomaspinho/rtl8821ce.git
 cd rtl8821ce
 ```
 
-Then run the installation script:
+Then run the removal script:
 ```
 sudo ./dkms-remove.sh
 ```

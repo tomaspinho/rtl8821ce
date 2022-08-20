@@ -123,7 +123,9 @@ This may be due to the Kernel loading up the wrong firmware file for this card. 
 
 ### Secure Boot
 
-If your system uses Secure Boot, disable it via BIOS settings, otherwise the kernel will not accept user-supplied modules.
+If your system uses Secure Boot, the kernel will not accept user-supplied modules. There are two ways to solve this issue:
+1. Disable Secure Boot via BIOS/UEFI settings.
+2. Create or use an existing MOK (Machine Owner Key) to sign the compiled `.ko` linux kernel object produced by DKMS.
 
 ### Unstable connection - slowdowns or dropouts
 

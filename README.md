@@ -96,10 +96,10 @@ Your distribution may come with PCIe Active State Power Management enabled by de
 ```
 sudo $EDITOR /etc/default/grub
 ```
-Add pci=noaer at the end of GRUB_CMDLINE_LINUX_DEFAULT. Line should look like this:
+Add pcie_aspm=off at the end of GRUB_CMDLINE_LINUX_DEFAULT. Line should look like this:
 
 ```
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash pci=noaer"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash pcie_aspm=off"
 ```
 
 Then update your GRUB configuration:
@@ -107,6 +107,10 @@ Then update your GRUB configuration:
 sudo update-grub
 ```
 
+On systems that doesn't have `update-grub` but have `grubby` like Fedora, you can directly execute instead:
+```
+sudo grubby --update-kernel=ALL --args=pcie_aspm=off
+```
 Reboot.
 
 ### Lenovo Yoga laptops

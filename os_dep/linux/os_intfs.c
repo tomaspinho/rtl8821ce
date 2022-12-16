@@ -1685,7 +1685,7 @@ int rtw_os_ndev_register(_adapter *adapter, const char *name)
 		&adapter->napi,
 		rtw_recv_napi_poll
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
-		RTL_NAPI_WEIGHT
+		, RTL_NAPI_WEIGHT
 #endif
 	);
 #endif /* CONFIG_RTW_NAPI */

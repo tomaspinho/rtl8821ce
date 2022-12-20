@@ -164,3 +164,12 @@ Please avoid opening issues about this.
 ### Monitor (promiscuous) mode doesn't work
 This driver doesn't support it and never will.
 Please avoid opening issues about this.
+
+### After each Linux update
+This might need to be reinstalled after a Linux update (such as recent 22.04 update)
+you can use following command to reinstall
+```
+sudo aptitude reinstall rtl8821ce-dkms
+sudo modprobe rtl8821ce
+```
+

@@ -90,7 +90,7 @@ This will enable verbose debug logging, helpful to developers.
 
 ## Possible issues
 
-### PCIe Activate State Power Management
+### PCIe Active State Power Management
 Your distribution may come with PCIe Active State Power Management enabled by default. That may conflict with this driver. To disable:
 
 ```

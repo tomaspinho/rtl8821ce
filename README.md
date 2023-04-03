@@ -173,3 +173,29 @@ sudo aptitude reinstall rtl8821ce-dkms
 sudo modprobe rtl8821ce
 ```
 
+Possible problems
+Secure Boot
+If your system uses secure boot, disable it in the BIOS settings, otherwise the kernel will not accept custom modules.
+
+PCIe Activate State Power Management
+Your distribution may ship with PCIe Activate State Power Management enabled by default. It may conflict with this driver. To disable:
+
+1
+sudo $EDITOR /etc/default/grub
+Add pci=noaer to the end of GRUB_CMDLINE_LINUX_DEFAULT. The line should look something like this:
+
+1
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash pci=noaer"
+Then update your GRUB config:
+
+1
+sudo update-grub
+Reboot.
+
+Lenovo Yoga Laptops
+Some newer Yoga laptops (like the Yoga 530) come with rtl8821ce as a Wi-Fi/Bluetooth chip. But the ideapad-laptop module that may be included with your distribution may conflict with this driver. To turn it off:
+
+1
+sudo modprobe -r ideapad_laptop
+BlueTooth not working
+This could be because the kernel is loading the wrong firmware file for this card. Take a look at the wahsot manual at https://github.com/tomaspinho/rtl8821ce/issues/19#issuecomment-452196840 to see if it can fix your issue.

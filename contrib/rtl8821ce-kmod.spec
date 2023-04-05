@@ -1,6 +1,6 @@
-%global commit 897e7c4c15dd5a0a569745dc223d969a26ff5bfc
+%global commit a3e2f7c1f91e92f2dc788e8fcd7f2986af3d19b6
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
-%global gitdate 20210321
+%global gitdate 20230101
 
 # buildforkernels macro hint: when you build a new version or a new release
 # that contains bugfixes or other improvements then you must disable the
@@ -13,7 +13,7 @@
 
 Name:           rtl8821ce-kmod
 Version:        0.1
-Release:        4%{?gitdate:.%gitdate.git%shortcommit}%{?dist}
+Release:        5%{?gitdate:.%gitdate.git%shortcommit}%{?dist}
 Summary:        Kernel modules for Realtek RTL8821CE Driver
 License:        GPLv2
 #URL:            https://github.com/tomaspinho/rtl8821ce
@@ -89,6 +89,9 @@ done
 %{_sysconfdir}/modprobe.d/rtw88_blacklist.conf
 
 %changelog
+* Wed Apr 05 2023 Sérgio Basto <sergio@serjux.com> - 0.1-5.20230101.gita3e2f7c
+- Update to 20230101 6.1 kernel
+
 * Mon Mar 22 2021 Sérgio Basto <sergio@serjux.com> - 0.1-4.20210321.git897e7c4
 - 20210321 5.12-rc2
 

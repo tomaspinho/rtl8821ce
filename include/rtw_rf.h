@@ -173,7 +173,12 @@ struct regd_exc_ent {
 	_list list;
 	char country[2];
 	u8 domain;
-	char regd_name[0];
+
+    #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 1))
+	char regd_name[];
+    #else
+    char regd_name[0];
+    #endif
 };
 
 void dump_regd_exc_list(void *sel, struct rf_ctl_t *rfctl);

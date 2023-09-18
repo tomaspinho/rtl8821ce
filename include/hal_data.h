@@ -332,7 +332,12 @@ struct txpwr_lmt_ent {
 		[MAX_TX_COUNT];
 #endif
 
-	char regd_name[0];
+    #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 1))
+	char regd_name[];
+    #else
+    char regd_name[0];
+    #endif
+
 };
 #endif /* CONFIG_TXPWR_LIMIT */
 

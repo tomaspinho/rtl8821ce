@@ -173,7 +173,7 @@ struct regd_exc_ent {
 	_list list;
 	char country[2];
 	u8 domain;
-	#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 1))
+	#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0))
 	char regd_name[];
 	#else
 	char regd_name[0];

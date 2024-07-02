@@ -129,7 +129,7 @@ You can also blacklist the rtw88_8821ce kernel module.
 ```
 echo "blacklist rtw88_8821ce" >> /etc/modprobe.d/rtw88_8821ce.conf
 ```
-
+and just regenerate the kernel.
 
 
 ###  Secure Boot

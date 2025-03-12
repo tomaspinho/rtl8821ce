@@ -1241,11 +1241,11 @@ static int rtw_net_set_mac_address(struct net_device *pnetdev, void *addr)
 	}
 
 	_rtw_memcpy(adapter_mac_addr(padapter), sa->sa_data, ETH_ALEN); /* set mac addr to adapter */
-	#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0))
 	_rtw_memcpy(pnetdev->dev_addr, sa->sa_data, ETH_ALEN); /* set mac addr to net_device */
-	#else
-  eth_hw_addr_set(pnetdev, sa->sa_data);
-  #endif
+#else
+	eth_hw_addr_set(pnetdev, sa->sa_data);
+#endif
 
 #if 0
 	if (rtw_is_hw_init_completed(padapter)) {
@@ -1342,9 +1342,9 @@ static u16 rtw_select_queue(struct net_device *dev, struct sk_buff *skb
 )
 #else
 static u16 rtw_select_queue(struct net_device *dev, struct sk_buff *skb
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0)
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0))
 	, void *accel_priv
-	#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0)
+	#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0))
 	, select_queue_fallback_t fallback
 	#endif
 #endif
@@ -1576,7 +1576,7 @@ struct net_device *rtw_init_netdev(_adapter *old_padapter)
 	padapter = rtw_netdev_priv(pnetdev);
 	padapter->pnetdev = pnetdev;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 24)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 24))
 	SET_MODULE_OWNER(pnetdev);
 #endif
 
@@ -1586,24 +1586,23 @@ struct net_device *rtw_init_netdev(_adapter *old_padapter)
 		rtw_hook_vir_if_ops(pnetdev);
 #endif /* CONFIG_CONCURRENT_MODE */
 
-
 #ifdef CONFIG_TX_CSUM_OFFLOAD
-        pnetdev->features |= (NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39)
-        pnetdev->hw_features |= (NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM);
+    pnetdev->features |= (NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39)_
+    pnetdev->hw_features |= (NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM);
 #endif
 #endif
 
 #ifdef CONFIG_RTW_NETIF_SG
-        pnetdev->features |= NETIF_F_SG;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39)
-        pnetdev->hw_features |= NETIF_F_SG;
+    pnetdev->features |= NETIF_F_SG;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39))
+    pnetdev->hw_features |= NETIF_F_SG;
 #endif
 #endif
 
 	if ((pnetdev->features & NETIF_F_SG) && (pnetdev->features & NETIF_F_IP_CSUM)) {
 		pnetdev->features |= (NETIF_F_TSO | NETIF_F_GSO);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39)
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39))
 		pnetdev->hw_features |= (NETIF_F_TSO | NETIF_F_GSO);
 #endif
 	}
@@ -1632,7 +1631,7 @@ int rtw_os_ndev_alloc(_adapter *adapter)
 		rtw_warn_on(1);
 		goto exit;
 	}
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0)
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
 	SET_NETDEV_DEV(ndev, dvobj_to_dev(adapter_to_dvobj(adapter)));
 #endif
 
@@ -1707,11 +1706,11 @@ int rtw_os_ndev_register(_adapter *adapter, const char *name)
 	/* alloc netdev name */
 	rtw_init_netdev_name(ndev, name);
 
-	#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0))
 	_rtw_memcpy(ndev->dev_addr, adapter_mac_addr(adapter), ETH_ALEN);
-	#else
-  eth_hw_addr_set(ndev, adapter_mac_addr(adapter));
-  #endif
+#else
+	eth_hw_addr_set(ndev, adapter_mac_addr(adapter));
+#endif
 
 	/* Tell the network stack we exist */
 
@@ -2679,7 +2678,7 @@ int _netdev_vir_if_open(struct net_device *pnetdev)
 		rtw_mbid_camid_alloc(padapter, adapter_mac_addr(padapter));
 #endif
 		rtw_init_wifidirect_addrs(padapter, adapter_mac_addr(padapter), adapter_mac_addr(padapter));
-		#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0)
+		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0))
 		_rtw_memcpy(pnetdev->dev_addr, adapter_mac_addr(padapter), ETH_ALEN);
 		#else
 		eth_hw_addr_set(pnetdev, adapter_mac_addr(padapter));
@@ -3432,7 +3431,7 @@ int _netdev_open(struct net_device *pnetdev)
 		rtw_mbid_camid_alloc(padapter, adapter_mac_addr(padapter));
 #endif
 		rtw_init_wifidirect_addrs(padapter, adapter_mac_addr(padapter), adapter_mac_addr(padapter));
-		#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0)
+		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0))
 		_rtw_memcpy(pnetdev->dev_addr, adapter_mac_addr(padapter), ETH_ALEN);
 		#else
 		eth_hw_addr_set(pnetdev, adapter_mac_addr(padapter));

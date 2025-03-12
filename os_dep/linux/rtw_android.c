@@ -306,7 +306,7 @@ int rtw_android_cfg80211_pno_setup(struct net_device *net,
 		memcpy(pno_ssids_local[index].SSID, ssids[index].ssid,
 		       ssids[index].ssid_len);
 	}
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 2, 0)
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 2, 0))
 	if(ssids)
 		rtw_mfree((u8 *)ssids, (n_ssids * sizeof(struct cfg80211_ssid)));
 #endif

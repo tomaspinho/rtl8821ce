@@ -9787,7 +9787,7 @@ static int rtw_mp_efuse_set(struct net_device *dev,
 		/* set mac addr*/
 		rtw_macaddr_cfg(adapter_mac_addr(padapter), get_hal_mac_addr(padapter));
 
-		#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0)
+		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0))
 		_rtw_memcpy(padapter->pnetdev->dev_addr, get_hal_mac_addr(padapter), ETH_ALEN); /* set mac addr to net_device */
 		#else
 		eth_hw_addr_set(padapter->pnetdev, get_hal_mac_addr(padapter));

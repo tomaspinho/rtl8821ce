@@ -55,6 +55,7 @@ sudo nixos-rebuild switch
 ```
 And reboot. 
 If you are not using the latest linux kernel the package used will be different. Check the [NixOS packages](https://search.nixos.org/packages?type=packages&query=rtl8821ce) to see if your version is supported.
+
 ### Manual installation of driver
 In order to install the driver open a terminal in the directory with the source code and execute the following command:
 ```

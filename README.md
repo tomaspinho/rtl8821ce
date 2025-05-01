@@ -41,6 +41,20 @@ An unofficial Gentoo package is available, using this repository as upstream. It
 # emerge --ask net-wireless/rtl8821ce-driver
 ```
 
+### NixOS
+An unofficial nix package is available from [nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/os-specific/linux/rtl8821ce/default.nix). It can be installed by adding the following to `/etc/nixos/configuration.nix`:
+``` nix
+boot.kernelModules = [ "8821ce" ]
+boot.extraModulePackages = with config.boot.kernelPackages; [
+  rtl8821ce
+];
+```
+Then apply the changes:
+```
+sudo nixos-rebuild switch
+```
+And reboot. 
+If you are not using the latest linux kernel the package used will be different. Check the [NixOS packages](https://search.nixos.org/packages?type=packages&query=rtl8821ce) to see if your version is supported.
 ### Manual installation of driver
 In order to install the driver open a terminal in the directory with the source code and execute the following command:
 ```

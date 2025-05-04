@@ -138,9 +138,16 @@ sudo modprobe -r ideapad_laptop
 
 ### BlueTooth is not working
 
-This may be due to the Kernel loading up the wrong firmware file for this card. Please take a look at [@wahsot](https://github.com/wahsot)'s tutorial at https://github.com/tomaspinho/rtl8821ce/issues/19#issuecomment-452196840 to see if that helps you out.
+This may be due to the Kernel loading up the wrong firmware file for this card. Please take a look at [@wahsot](https://github.com/wahsot)'s tutorial at https://github.com/tomaspinho/rtl8821ce/issues/19#issuecomment-452196840 to see if that helps you out. <br><br>
+You can also blacklist the rtw88_8821ce kernel module.
 
-### Secure Boot
+```
+echo "blacklist rtw88_8821ce" >> /etc/modprobe.d/rtw88_8821ce.conf
+```
+and just regenerate the kernel.
+
+
+###  Secure Boot
 
 If your system uses Secure Boot, the kernel will not accept user-supplied modules. There are two ways to solve this issue:
 1. Disable Secure Boot via BIOS/UEFI settings.

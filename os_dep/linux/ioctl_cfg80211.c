@@ -1567,11 +1567,18 @@ static int rtw_cfg80211_set_encryption(struct net_device *dev, struct ieee_param
 					RTW_INFO(FUNC_ADPT_FMT" set %s PTK idx:%u, len:%u\n"
 						, FUNC_ADPT_ARG(padapter), param->u.crypt.alg, param->u.crypt.idx, param->u.crypt.key_len);
 					_rtw_memcpy(psta->dot118021x_UncstKey.skey,  param->u.crypt.key, (param->u.crypt.key_len > 16 ? 16 : param->u.crypt.key_len));
-					if (strcmp(param->u.crypt.alg, "TKIP") == 0) { /* set mic key */
-						_rtw_memcpy(psta->dot11tkiptxmickey.skey, &(param->u.crypt.key[16]), 8);
-						_rtw_memcpy(psta->dot11tkiprxmickey.skey, &(param->u.crypt.key[24]), 8);
-						padapter->securitypriv.busetkipkey = _FALSE;
-					}
+          if (strcmp(param->u.crypt.alg, "TKIP") == 0) { /* set mic key */
+              if (param->u.crypt.key_len >= 32) {
+                  _rtw_memcpy(psta->dot11tkiptxmickey.skey, &(param->u.crypt.key[16]), 8);
+                  _rtw_memcpy(psta->dot11tkiprxmickey.skey, &(param->u.crypt.key[24]), 8);
+              } else {
+                  RTW_WARN("TKIP key_len too short for MIC keys: %u\n", param->u.crypt.key_len);
+                  /* Optionally zero out the keys or handle error */
+                  _rtw_memset(psta->dot11tkiptxmickey.skey, 0, 8);
+                  _rtw_memset(psta->dot11tkiprxmickey.skey, 0, 8);
+              }
+              padapter->securitypriv.busetkipkey = _FALSE;
+          }
 					psta->dot11txpn.val = RTW_GET_LE64(param->u.crypt.seq);
 					psta->dot11rxpn.val = RTW_GET_LE64(param->u.crypt.seq);
 					psta->bpairwise_key_installed = _TRUE;
@@ -1586,8 +1593,14 @@ static int rtw_cfg80211_set_encryption(struct net_device *dev, struct ieee_param
 							, FUNC_ADPT_ARG(padapter), param->u.crypt.alg, param->u.crypt.idx, param->u.crypt.key_len);
 						_rtw_memcpy(padapter->securitypriv.dot118021XGrpKey[param->u.crypt.idx].skey,  param->u.crypt.key,
 							(param->u.crypt.key_len > 16 ? 16 : param->u.crypt.key_len));
-						_rtw_memcpy(padapter->securitypriv.dot118021XGrptxmickey[param->u.crypt.idx].skey, &(param->u.crypt.key[16]), 8);
-						_rtw_memcpy(padapter->securitypriv.dot118021XGrprxmickey[param->u.crypt.idx].skey, &(param->u.crypt.key[24]), 8);
+            if (param->u.crypt.key_len >= 32) {
+                _rtw_memcpy(padapter->securitypriv.dot118021XGrptxmickey[param->u.crypt.idx].skey, &(param->u.crypt.key[16]), 8);
+                _rtw_memcpy(padapter->securitypriv.dot118021XGrprxmickey[param->u.crypt.idx].skey, &(param->u.crypt.key[24]), 8);
+            } else {
+                RTW_WARN("Group TKIP key_len too short for MIC keys: %u\n", param->u.crypt.key_len);
+                _rtw_memset(padapter->securitypriv.dot118021XGrptxmickey[param->u.crypt.idx].skey, 0, 8);
+                _rtw_memset(padapter->securitypriv.dot118021XGrprxmickey[param->u.crypt.idx].skey, 0, 8);
+            }
 						padapter->securitypriv.binstallGrpkey = _TRUE;
 						if (param->u.crypt.idx < 4)
 							_rtw_memcpy(padapter->securitypriv.iv_seq[param->u.crypt.idx], param->u.crypt.seq, 8);

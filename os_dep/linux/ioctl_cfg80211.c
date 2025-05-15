@@ -1314,9 +1314,18 @@ static int rtw_cfg80211_ap_set_encryption(struct net_device *dev, struct ieee_pa
 				psecuritypriv->dot118021XGrpPrivacy = _TKIP_;
 				_rtw_memcpy(psecuritypriv->dot118021XGrpKey[param->u.crypt.idx].skey,  param->u.crypt.key, (param->u.crypt.key_len > 16 ? 16 : param->u.crypt.key_len));
 				/* set mic key */
-				_rtw_memcpy(psecuritypriv->dot118021XGrptxmickey[param->u.crypt.idx].skey, &(param->u.crypt.key[16]), 8);
-				_rtw_memcpy(psecuritypriv->dot118021XGrprxmickey[param->u.crypt.idx].skey, &(param->u.crypt.key[24]), 8);
-				psecuritypriv->busetkipkey = _TRUE;
+        if (param->u.crypt.key_len >= 32) {
+          _rtw_memcpy(psecuritypriv->dot118021XGrpKey[param->u.crypt.idx].skey, param->u.crypt.key, 16);
+          _rtw_memcpy(psecuritypriv->dot118021XGrptxmickey[param->u.crypt.idx].skey, &(param->u.crypt.key[16]), 8);
+          _rtw_memcpy(psecuritypriv->dot118021XGrprxmickey[param->u.crypt.idx].skey, &(param->u.crypt.key[24]), 8);
+          psecuritypriv->busetkipkey = _TRUE;
+        } else {
+          RTW_WARN("TKIP GTK key_len too short: %u (needs >=32)\n", param->u.crypt.key_len);
+          _rtw_memset(psecuritypriv->dot118021XGrpKey[param->u.crypt.idx].skey, 0, 16);
+          _rtw_memset(psecuritypriv->dot118021XGrptxmickey[param->u.crypt.idx].skey, 0, 8);
+          _rtw_memset(psecuritypriv->dot118021XGrprxmickey[param->u.crypt.idx].skey, 0, 8);
+          psecuritypriv->busetkipkey = _FALSE;
+        }
 
 			} else if (strcmp(param->u.crypt.alg, "CCMP") == 0) {
 				RTW_INFO(FUNC_ADPT_FMT" set CCMP TX GTK idx:%u, len:%u\n"
@@ -1381,9 +1390,16 @@ static int rtw_cfg80211_ap_set_encryption(struct net_device *dev, struct ieee_pa
 					, param->u.crypt.idx, param->u.crypt.key_len);
 				psta->dot118021XPrivacy = _TKIP_;
 				/* set mic key */
-				_rtw_memcpy(psta->dot11tkiptxmickey.skey, &(param->u.crypt.key[16]), 8);
-				_rtw_memcpy(psta->dot11tkiprxmickey.skey, &(param->u.crypt.key[24]), 8);
-				psecuritypriv->busetkipkey = _TRUE;
+        if (param->u.crypt.key_len >= 32) {
+          _rtw_memcpy(psta->dot11tkiptxmickey.skey, &(param->u.crypt.key[16]), 8);
+          _rtw_memcpy(psta->dot11tkiprxmickey.skey, &(param->u.crypt.key[24]), 8);
+          psecuritypriv->busetkipkey = _TRUE;
+        } else {
+          RTW_WARN("TKIP PTK key_len too short: %u (needs >=32)\n", param->u.crypt.key_len);
+          _rtw_memset(psta->dot11tkiptxmickey.skey, 0, 8);
+          _rtw_memset(psta->dot11tkiprxmickey.skey, 0, 8);
+          psecuritypriv->busetkipkey = _FALSE;
+        }
 
 			} else if (strcmp(param->u.crypt.alg, "CCMP") == 0) {
 				RTW_INFO(FUNC_ADPT_FMT" set CCMP PTK of "MAC_FMT" idx:%u, len:%u\n"
@@ -1568,16 +1584,16 @@ static int rtw_cfg80211_set_encryption(struct net_device *dev, struct ieee_param
 						, FUNC_ADPT_ARG(padapter), param->u.crypt.alg, param->u.crypt.idx, param->u.crypt.key_len);
 					_rtw_memcpy(psta->dot118021x_UncstKey.skey,  param->u.crypt.key, (param->u.crypt.key_len > 16 ? 16 : param->u.crypt.key_len));
           if (strcmp(param->u.crypt.alg, "TKIP") == 0) { /* set mic key */
-              if (param->u.crypt.key_len >= 32) {
-                  _rtw_memcpy(psta->dot11tkiptxmickey.skey, &(param->u.crypt.key[16]), 8);
-                  _rtw_memcpy(psta->dot11tkiprxmickey.skey, &(param->u.crypt.key[24]), 8);
-              } else {
-                  RTW_WARN("TKIP key_len too short for MIC keys: %u\n", param->u.crypt.key_len);
-                  /* Optionally zero out the keys or handle error */
-                  _rtw_memset(psta->dot11tkiptxmickey.skey, 0, 8);
-                  _rtw_memset(psta->dot11tkiprxmickey.skey, 0, 8);
-              }
-              padapter->securitypriv.busetkipkey = _FALSE;
+            if (param->u.crypt.key_len >= 32) {
+              _rtw_memcpy(psta->dot11tkiptxmickey.skey, &(param->u.crypt.key[16]), 8);
+              _rtw_memcpy(psta->dot11tkiprxmickey.skey, &(param->u.crypt.key[24]), 8);
+            } else {
+              RTW_WARN("TKIP key_len too short for MIC keys: %u\n", param->u.crypt.key_len);
+              /* Optionally zero out the keys or handle error */
+              _rtw_memset(psta->dot11tkiptxmickey.skey, 0, 8);
+              _rtw_memset(psta->dot11tkiprxmickey.skey, 0, 8);
+            }
+            padapter->securitypriv.busetkipkey = _FALSE;
           }
 					psta->dot11txpn.val = RTW_GET_LE64(param->u.crypt.seq);
 					psta->dot11rxpn.val = RTW_GET_LE64(param->u.crypt.seq);

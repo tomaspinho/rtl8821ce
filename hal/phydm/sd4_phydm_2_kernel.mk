@@ -1,4 +1,4 @@
-EXTRA_CFLAGS += -I$(topDIR)/hal/phydm
+ccflags-y += -I$(topDIR)/hal/phydm
 
 _PHYDM_FILES := hal/phydm/phydm_debug.o	\
 								hal/phydm/phydm_interface.o\

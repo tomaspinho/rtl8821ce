@@ -1,0 +1,39 @@
+commit e9dc7b7d6e503ed851a39378b5b909a0ffaa9a4b
+Author: Sérgio M. Basto <sergio@serjux.com>
+Date:   Sun Nov 29 23:23:08 2020 +0000
+
+    Rename 8821ce.ko to rtl8821ce.ko
+
+diff --git a/Makefile b/Makefile
+index 5b5dc9a..b7904fd 100755
+--- a/Makefile
++++ b/Makefile
+@@ -825,13 +825,13 @@ endif
+ ifeq ($(CONFIG_RTL8821C), y)
+ RTL871X := rtl8821c
+ ifeq ($(CONFIG_USB_HCI), y)
+-MODULE_NAME = 8821cu
++MODULE_NAME = rtl8821cu
+ endif
+ ifeq ($(CONFIG_PCI_HCI), y)
+-MODULE_NAME = 8821ce
++MODULE_NAME = rtl8821ce
+ endif
+ ifeq ($(CONFIG_SDIO_HCI), y)
+-MODULE_NAME = 8821cs
++MODULE_NAME = rtl8821cs
+ endif
+ 
+ endif
+diff --git a/dkms.conf b/dkms.conf
+index 582b3be..d6e8b3c 100644
+--- a/dkms.conf
++++ b/dkms.conf
+@@ -1,6 +1,6 @@
+ PACKAGE_NAME="rtl8821ce"
+ PACKAGE_VERSION="#MODULE_VERSION#"
+-BUILT_MODULE_NAME[0]="8821ce"
++BUILT_MODULE_NAME[0]="rtl8821ce"
+ MAKE="'make' -j$(nproc) KVER=$kernelver"
+ CLEAN="'make' clean"
+ DEST_MODULE_LOCATION[0]="/updates/dkms"

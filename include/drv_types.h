@@ -1817,4 +1817,8 @@ int rtw_suspend_free_assoc_resource(_adapter *padapter);
 	#include <pci_hal.h>
 #endif
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0))
+#define strncpy(dst, src, sz) strscpy(dst, src, sz)
+#endif  // if (LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0))
+
 #endif /* __DRV_TYPES_H__ */

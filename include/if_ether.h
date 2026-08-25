@@ -49,8 +49,10 @@
 #define ETH_P_CUST      0x6006          /* DEC Customer use            */
 #define ETH_P_SCA       0x6007          /* DEC Systems Comms Arch      */
 #define ETH_P_RARP      0x8035		/* Reverse Addr Res packet	*/
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(7, 2, 0))
 #define ETH_P_ATALK	0x809B		/* Appletalk DDP		*/
 #define ETH_P_AARP	0x80F3		/* Appletalk AARP		*/
+#endif  // if (LINUX_VERSION_CODE < KERNEL_VERSION(7, 2, 0))
 #define ETH_P_8021Q	0x8100          /* 802.1Q VLAN Extended Header */
 #define ETH_P_IPX	0x8137		/* IPX over DIX			*/
 #define ETH_P_IPV6	0x86DD		/* IPv6 over bluebook		*/

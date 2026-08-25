@@ -71,6 +71,8 @@
 #define MAGIC_CODE_LEN	2
 #define WAIT_TIME_PPPOE	5	/* waiting time for pppoe server in sec */
 
+#define PPPOE_TAG_PTR(ph)	((unsigned char *)(ph) + sizeof(struct pppoe_hdr))
+#define PPPOE_TAG_DATA_PTR(tag)	((unsigned char *)(tag) + sizeof(struct pppoe_tag))
 /*-----------------------------------------------------------------
   How database records network address:
            0    1    2    3    4    5    6    7    8    9   10
@@ -89,7 +91,7 @@ static __inline__ unsigned char *__nat25_find_pppoe_tag(struct pppoe_hdr *ph, un
 	unsigned char *cur_ptr, *start_ptr;
 	unsigned short tagLen, tagType;
 
-	start_ptr = cur_ptr = (unsigned char *)ph->tag;
+	start_ptr = cur_ptr = PPPOE_TAG_PTR(ph);
 	while ((cur_ptr - start_ptr) < ntohs(ph->length)) {
 		/* prevent un-alignment access */
 		tagType = (unsigned short)((cur_ptr[0] << 8) + cur_ptr[1]);
@@ -115,9 +117,9 @@ static __inline__ int __nat25_add_pppoe_tag(struct sk_buff *skb, struct pppoe_ta
 
 	skb_put(skb, data_len);
 	/* have a room for new tag */
-	memmove(((unsigned char *)ph->tag + data_len), (unsigned char *)ph->tag, ntohs(ph->length));
+	memmove(PPPOE_TAG_PTR(ph) + data_len, PPPOE_TAG_PTR(ph), ntohs(ph->length));
 	ph->length = htons(ntohs(ph->length) + data_len);
-	memcpy((unsigned char *)ph->tag, tag, data_len);
+	memcpy(PPPOE_TAG_PTR(ph), tag, data_len);
 	return data_len;
 }
 
@@ -900,8 +902,10 @@ int nat25_db_handle(_adapter *priv, struct sk_buff *skb, int method)
 		 (protocol == __constant_htons(ETH_P_AARP))) {
 		unsigned char ipx_header[2] = {0xFF, 0xFF};
 		struct ipxhdr	*ipx = NULL;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(7, 2, 0))
 		struct elapaarp	*ea = NULL;
 		struct ddpehdr	*ddp = NULL;
+#endif  // if (LINUX_VERSION_CODE < KERNEL_VERSION(7, 2, 0))
 		unsigned char *framePtr = skb->data + ETH_HLEN;
 
 		if (protocol == __constant_htons(ETH_P_IPX)) {
@@ -917,8 +921,10 @@ int nat25_db_handle(_adapter *priv, struct sk_buff *skb, int method)
 
 				if (*framePtr == snap_8022_type) {
 					unsigned char ipx_snap_id[5] = {0x0, 0x0, 0x0, 0x81, 0x37};		/* IPX SNAP ID */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(7, 2, 0))
 					unsigned char aarp_snap_id[5] = {0x00, 0x00, 0x00, 0x80, 0xF3};	/* Apple Talk AARP SNAP ID */
 					unsigned char ddp_snap_id[5] = {0x08, 0x00, 0x07, 0x80, 0x9B};	/* Apple Talk DDP SNAP ID */
+#endif  // if (LINUX_VERSION_CODE < KERNEL_VERSION(7, 2, 0))
 
 					framePtr += 3;	/* eliminate the 802.2 header */
 
@@ -927,6 +933,7 @@ int nat25_db_handle(_adapter *priv, struct sk_buff *skb, int method)
 
 						RTW_INFO("NAT25: Protocol=IPX (Ethernet SNAP)\n");
 						ipx = (struct ipxhdr *)framePtr;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(7, 2, 0))
 					} else if (!memcmp(aarp_snap_id, framePtr, 5)) {
 						framePtr += 5;	/* eliminate the SNAP header */
 
@@ -935,6 +942,7 @@ int nat25_db_handle(_adapter *priv, struct sk_buff *skb, int method)
 						framePtr += 5;	/* eliminate the SNAP header */
 
 						ddp = (struct ddpehdr *)framePtr;
+#endif  // if (LINUX_VERSION_CODE < KERNEL_VERSION(7, 2, 0))
 					} else {
 						DEBUG_WARN("NAT25: Protocol=Ethernet SNAP %02x%02x%02x%02x%02x\n", framePtr[0],
 							framePtr[1], framePtr[2], framePtr[3], framePtr[4]);
@@ -1022,6 +1030,7 @@ int nat25_db_handle(_adapter *priv, struct sk_buff *skb, int method)
 		}
 		#endif
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(7, 2, 0))
 		/*   AARP  */
 	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0))
 		else if (ea != NULL) {
@@ -1116,7 +1125,7 @@ int nat25_db_handle(_adapter *priv, struct sk_buff *skb, int method)
 				return -1;
 			}
 		}
-
+#endif  // if (LINUX_VERSION_CODE < KERNEL_VERSION(7, 2, 0))
 		return -1;
 	}
 
@@ -1151,8 +1160,8 @@ int nat25_db_handle(_adapter *priv, struct sk_buff *skb, int method)
 								return -1;
 							}
 
-							memcpy(tag->tag_data + MAGIC_CODE_LEN + RTL_RELAY_TAG_LEN,
-							       pOldTag->tag_data, old_tag_len);
+							memcpy(PPPOE_TAG_DATA_PTR(tag) + MAGIC_CODE_LEN + RTL_RELAY_TAG_LEN,
+							       PPPOE_TAG_DATA_PTR(pOldTag), old_tag_len);
 
 							if (skb_pull_and_merge(skb, (unsigned char *)pOldTag, TAG_HDR_LEN + old_tag_len) < 0) {
 								DEBUG_ERR("call skb_pull_and_merge() failed in PADI/R packet!\n");
@@ -1165,9 +1174,9 @@ int nat25_db_handle(_adapter *priv, struct sk_buff *skb, int method)
 						tag->tag_len = htons(MAGIC_CODE_LEN + RTL_RELAY_TAG_LEN + old_tag_len);
 
 						/* insert the magic_code+client mac in relay tag */
-						pMagic = (unsigned short *)tag->tag_data;
+						pMagic = (unsigned short *)PPPOE_TAG_DATA_PTR(tag);
 						*pMagic = htons(MAGIC_CODE);
-						memcpy(tag->tag_data + MAGIC_CODE_LEN, skb->data + ETH_ALEN, ETH_ALEN);
+						memcpy(PPPOE_TAG_DATA_PTR(tag) + MAGIC_CODE_LEN, skb->data + ETH_ALEN, ETH_ALEN);
 
 						/* Add relay tag */
 						if (__nat25_add_pppoe_tag(skb, tag) < 0)
@@ -1228,14 +1237,14 @@ int nat25_db_handle(_adapter *priv, struct sk_buff *skb, int method)
 						return -1;
 					}
 
-					pMagic = (unsigned short *)tag->tag_data;
+					pMagic = (unsigned short *)PPPOE_TAG_DATA_PTR(tag);
 					if (ntohs(*pMagic) != MAGIC_CODE) {
 						DEBUG_ERR("Can't find MAGIC_CODE in %s packet!\n",
 							(ph->code == PADO_CODE ? "PADO" : "PADS"));
 						return -1;
 					}
 
-					memcpy(skb->data, tag->tag_data + MAGIC_CODE_LEN, ETH_ALEN);
+					memcpy(skb->data, PPPOE_TAG_DATA_PTR(tag) + MAGIC_CODE_LEN, ETH_ALEN);
 
 					if (tagLen > MAGIC_CODE_LEN + RTL_RELAY_TAG_LEN)
 						offset = TAG_HDR_LEN;
